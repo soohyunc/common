@@ -265,9 +265,17 @@ static void mb_header(int seqnum, struct timeval ts, char reliable, const char *
 	mb_bufpos = mb_buffer + MBUS_AUTH_LEN;
       /* monster kludge */
       if(*dst == '(')
+#ifdef WIN32
+	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %I64d%03ld %c (%s) %s ", seqnum, (__int64)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //SV-XXX: WIN32
+#else
 	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %jd%03ld %c (%s) %s ", seqnum, (intmax_t)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //SV-XXX: FreeBSD
+#endif
       else
+#ifdef WIN32
+	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %I64d%03ld %c (%s) (%s) ", seqnum, (__int64)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //SV-XXX: WIN32
+#else
 	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %jd%03ld %c (%s) (%s) ", seqnum, (intmax_t)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //SV-XXX: FreeBSD
+#endif
 
       mb_bufpos += strlen(mb_bufpos);
 	if (ackseq == -1) {
