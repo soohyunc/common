@@ -20,6 +20,8 @@ SRCS = $(OBJS:%.o=%.c)
 
 all: test-libcommon
 
+install:
+
 test-libcommon: $(OBJS) $(COMMONTGT)
 	$(CC) $(OBJS) $(CFLAGS) $(COMMONTGT) $(LIBS) -o test-libcommon
 

@@ -10,6 +10,7 @@ CC     = @CC@
 AR     = ar
 RANLIB = @RANLIB@
 HOST   = @host@
+INSTALL= @srcdir@/../install-sh -c
 TARGET = libuclmmbase.a
 
 exec_prefix=@exec_prefix@
@@ -29,6 +30,11 @@ $(TARGET): $(OBJS)
 
 version.h: ../VERSION
 	sed -e 's/.*/#define CCL_VERSION "v&"/' $? > version.h
+
+install: all
+	$(INSTALL) $(TARGET) @prefix@/lib/$(TARGET)
+	for header in *.h; do $(INSTALL) $$header @prefix@/include/common/$(header); done
+
 
 .c.o:
 	$(CC) $(CFLAGS) $(INC) -c $<

@@ -10,6 +10,8 @@ all: all-recursive
 all-recursive:
 	for s in $(SUBDIRS) ; do (cd $$s && $(MAKE)) || exit 1; done
 
+install:
+
 clean: clean-recursive
 
 clean-recursive:

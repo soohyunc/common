@@ -7,11 +7,16 @@ SUBDIRS=src tests examples @OPTDOC@
 
 all: all-recursive
 
+install: install-recursive
+
 all-recursive:
 	for s in $(SUBDIRS) ; do (cd $$s && $(MAKE)) || exit 1 ; done
 	@echo ""
 	@echo "*** run \"tests/test-libcommon\" to run the test suite"
 	@echo ""
+
+install-recursive: all
+	for s in $(SUBDIRS) ; do (cd $$s && $(MAKE) install) || exit 1 ; done
 
 clean: clean-recursive
 
