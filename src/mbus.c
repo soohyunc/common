@@ -428,7 +428,8 @@ void mbus_heartbeat(struct mbus *m, int interval)
 
 	gettimeofday(&curr_time, NULL);
 	if (curr_time.tv_sec - m->last_heartbeat.tv_sec >= interval) {
-	    mb_header(++m->seqnum, curr_time, 'U', m->addr, "()", -1);
+            m->seqnum=(++m->seqnum)%999999;
+	    mb_header(m->seqnum, curr_time, 'U', m->addr, "()", -1);
 		mb_add_command("mbus.hello", "");
 		mb_send(m);
 
@@ -696,7 +697,8 @@ void mbus_qmsg(struct mbus *m, const char *dest, const char *cmnd, const char *a
 	curr->dest             = xstrdup(dest);
 	curr->retransmit_count = 0;
 	curr->message_size     = alen + 60 + strlen(dest) + strlen(m->addr);
-	curr->seqnum           = ++m->seqnum;
+        m->seqnum	       = (++m->seqnum)%999999;
+	curr->seqnum           = m->seqnum;
 	curr->reliable         = reliable;
 	curr->complete         = FALSE;
 	curr->num_cmds         = 1;
@@ -906,7 +908,8 @@ int mbus_recv(struct mbus *m, void *data, struct timeval *timeout)
 				sprintf(newseq, "(%6d)", seq);	/* size allocated in mb_header */
 
 				gettimeofday(&t, NULL);
-				mb_header(++m->seqnum, t, 'U', m->addr, newsrc, seq);
+                                m->seqnum=(++m->seqnum)%999999;
+				mb_header(m->seqnum, t, 'U', m->addr, newsrc, seq);
 				mb_send(m);
 
 				/* Record sequence number of last reliable message from each source.
