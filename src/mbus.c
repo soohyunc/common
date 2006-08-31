@@ -405,10 +405,12 @@ void mbus_retransmit(struct mbus *m)
 	 * overflowing the receiver with a burst of requests...
 	 */
 	if ((diff > 750) && (curr->retransmit_count == 2)) {
+		debug_msg("Reliable mbus message resending after 750ms\n");
 		resend(m, curr);
 		return;
 	} 
 	if ((diff > 500) && (curr->retransmit_count == 1)) {
+		debug_msg("Reliable mbus message resending after 500ms\n");
 		resend(m, curr);
 		return;
 	} 
