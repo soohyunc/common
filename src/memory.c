@@ -109,11 +109,9 @@ static int chk_header_okay(const chk_header *ch)
 
         if (ch->magic != MAGIC_MEMORY) {
                 fprintf(stderr, "ERROR: memory underrun\n");
-                abort();
                 return FALSE;
         } else if (memcmp(tm, &ch->magic, MAGIC_MEMORY_SIZE)) {
                 fprintf(stderr, "ERROR: memory overrun\n");
-                abort();
                 return FALSE;
         }
 
