@@ -2802,6 +2802,7 @@ void rtp_update(struct rtp *session)
 			if (s->got_bye && (delay > 2.0)) {
 				debug_msg("Deleting source 0x%08lx due to reception of BYE %f seconds ago...\n", s->ssrc, delay);
 				delete_source(session, s->ssrc);
+				continue;
 			}
 
 			/* Sources are marked as inactive if they haven't been heard */
