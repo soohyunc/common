@@ -54,7 +54,7 @@ typedef struct s_block {
 #define MAX_INDEX             SIZE_TO_INDEX(MAX_SIZE)
  
 static block  *blocks[MAX_INDEX];
-static int     blocks_alloced;
+static int     blocks_alloced=0;
 
 #ifdef DEBUG_MEM
 
