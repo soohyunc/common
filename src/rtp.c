@@ -1034,12 +1034,10 @@ struct rtp *rtp_init_if(const char *addr, char *iface,
                 return NULL;
         }
         if (rx_port % 2) {
-                debug_msg("rx_port must be even\n");
-                return NULL;
+                debug_msg("rx_port should be even\n");
         }
         if (tx_port % 2) {
-                debug_msg("tx_port must be even\n");
-                return NULL;
+                debug_msg("tx_port should be even\n");
         }
 
 	session 		= (struct rtp *) xmalloc(sizeof(struct rtp));
@@ -1051,7 +1049,7 @@ struct rtp *rtp_init_if(const char *addr, char *iface,
 	session->addr		= xstrdup(addr);
 	session->rx_port	= rx_port;
 	session->tx_port	= tx_port;
-	session->ttl		= min(ttl, 127);
+	session->ttl		= min(ttl, 255);
 	session->rtp_socket	= udp_init_if(addr, iface, rx_port, tx_port, ttl);
 	session->rtcp_socket	= udp_init_if(addr, iface, (uint16_t) (rx_port+1), (uint16_t) (tx_port+1), ttl);
 
@@ -1288,14 +1286,15 @@ static int validate_rtp2(rtp_packet *packet, int len)
 {
 	/* Check for valid payload types..... 72-76 are RTCP payload type numbers, with */
 	/* the high bit missing so we report that someone is running on the wrong port. */
-        if (packet->fields.pt >= 72 && packet->fields.pt <= 76) {
+    if (packet->fields.pt >= 72 && packet->fields.pt <= 76) {
 		debug_msg("rtp_header_validation: payload-type invalid");
-                if (packet->fields.m) {
-			debug_msg(" (RTCP packet on RTP port?)");
+        if (packet->fields.m) {
+				debug_msg(" (RTCP packet on RTP port?)");
 		}
 		debug_msg("\n");
 		return FALSE;
 	}
+
 	/* Check that the length of the packet is sensible... */
         if (len < (12 + (4 * packet->fields.cc))) {
 		debug_msg("rtp_header_validation: packet length is smaller than the header\n");
@@ -1334,10 +1333,6 @@ validate_rtp(struct rtp *session, rtp_packet *packet, int len)
 		return FALSE;
 	}
 
-	if (!session->opt->wait_for_rtcp) {
-		/* We prefer speed over accuracy... */
-		return TRUE;
-	}
 	return validate_rtp2(packet, len);
 }
 
