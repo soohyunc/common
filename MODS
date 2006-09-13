@@ -427,6 +427,17 @@ v1.2.5	- More informative error message when the lock on the mbus configuration
           for activating Rijndael encryption.
         - Various fixes for gcc4
 
+1.2.18  - Second release under SUMOVER project
+        - Modified seqnum incrementing such that it wraps at 999999 (ie 6 digits)
+	  Otherwise varsious things broke when it went over 6 digits.
+	- Fixed DEBUG_MEM check probs due to uninitialised variable
+	- Bug fixed in src deletion (Rhys Hawkins)
+	- Added install target for uclcommon (Rhys Hawkins)
+        - Removed Speed over accuracy check in validate_rtp as it wrongly classifies
+	  packets when just using the rtp version check - resulting in nasty crashes
+	- Raised max ttl to 225 - before iti was hard limited to 127
+	- Removed failure on use of non-even port number - as per RFC3550 
+
 Still to do...
 	- IPv6 code sometimes doesn't get the correct interface address,
 	  since it does a gethostbyname() and looks that up, yet that can
