@@ -305,7 +305,7 @@ static void mb_send(struct mbus *m)
  
 	mbus_validate(m);
 
-      *mb_bufpos = '\0';
+    *mb_bufpos = '\0';
 	assert((mb_bufpos - mb_buffer) < MBUS_BUF_SIZE);
 	assert(strlen(mb_buffer) < MBUS_BUF_SIZE);
 
@@ -430,7 +430,7 @@ void mbus_heartbeat(struct mbus *m, int interval)
 
 	gettimeofday(&curr_time, NULL);
 	if (curr_time.tv_sec - m->last_heartbeat.tv_sec >= interval) {
-            m->seqnum=(++m->seqnum)%999999;
+        m->seqnum=(++m->seqnum)%999999;
 	    mb_header(m->seqnum, curr_time, 'U', m->addr, "()", -1);
 		mb_add_command("mbus.hello", "");
 		mb_send(m);
@@ -699,7 +699,10 @@ void mbus_qmsg(struct mbus *m, const char *dest, const char *cmnd, const char *a
 	curr->dest             = xstrdup(dest);
 	curr->retransmit_count = 0;
 	curr->message_size     = alen + 60 + strlen(dest) + strlen(m->addr);
-        m->seqnum	       = (++m->seqnum)%999999;
+    /* Wrap seqnum on 999999 - Keeping seqnum to 6 digits - which is assumed
+	 * to be the case for a few functions in mbus. Longer seqnum's led to 
+	 * memory errors and aborts() */
+	m->seqnum			   = (++m->seqnum)%999999;
 	curr->seqnum           = m->seqnum;
 	curr->reliable         = reliable;
 	curr->complete         = FALSE;
