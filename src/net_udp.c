@@ -344,7 +344,13 @@ static socket_udp *udp_init4(const char *addr, const char *iface, uint16_t rx_po
 				return NULL;
 			}
 		}
+	} else {
+		if (SETSOCKOPT(s->fd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) != 0) {
+			socket_error("setsockopt IP_TTL");
+			return NULL;
+		}
 	}
+
         s->addr = strdup(addr);
 	return s;
 }
@@ -528,6 +534,11 @@ static socket_udp *udp_init6(const char *addr, const char *iface, uint16_t rx_po
 		}
 		if (SETSOCKOPT(s->fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (char *) &ttl, sizeof(ttl)) != 0) {
 			socket_error("setsockopt IPV6_MULTICAST_HOPS");
+			return NULL;
+		}
+	} else {
+		if (SETSOCKOPT(s->fd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) != 0) {
+			socket_error("setsockopt IP_TTL");
 			return NULL;
 		}
 	}
