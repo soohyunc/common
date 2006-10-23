@@ -345,7 +345,7 @@ static socket_udp *udp_init4(const char *addr, const char *iface, uint16_t rx_po
 			}
 		}
 	} else {
-		if (SETSOCKOPT(s->fd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) != 0) {
+		if (SETSOCKOPT(s->fd, IPPROTO_IP, IP_TTL, (char *) &ttl, sizeof(ttl)) != 0) {
 			socket_error("setsockopt IP_TTL");
 			return NULL;
 		}
@@ -537,7 +537,7 @@ static socket_udp *udp_init6(const char *addr, const char *iface, uint16_t rx_po
 			return NULL;
 		}
 	} else {
-		if (SETSOCKOPT(s->fd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) != 0) {
+		if (SETSOCKOPT(s->fd, IPPROTO_IP, IP_TTL, (char *) &ttl, sizeof(ttl)) != 0) {
 			socket_error("setsockopt IP_TTL");
 			return NULL;
 		}
@@ -653,7 +653,8 @@ static const char *udp_host_addr6(socket_udp *s)
 	int 			 gai_err, newsock;
 	struct addrinfo 	 hints, *ai;
 	struct sockaddr_in6 	 local, addr6;
-	int len = sizeof(local), result = 0;
+	uint32_t			len = sizeof(local);
+	int					result = 0;
 
 	newsock=socket(AF_INET6, SOCK_DGRAM,0);
     memset ((char *)&addr6, 0, len);
