@@ -30,7 +30,7 @@ $(CSRC)/lib$(LNAME).a:
 	cd $(CSRC) && $(MAKE)
 
 clean:
-	-rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET)
 
 distclean: clean
-	-rm -f Makefile
+	rm -f Makefile

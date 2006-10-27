@@ -3,7 +3,7 @@
 # This probably requires GNU make.
 #
 
-SUBDIRS=rtp
+SUBDIRS=rtp sdp sap
 
 all: all-recursive
 

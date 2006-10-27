@@ -1326,6 +1326,8 @@ validate_rtp(struct rtp *session, rtp_packet *packet, int len)
 	/* This function checks the header info to make sure that the packet */
 	/* is valid. We return TRUE if the packet is valid, FALSE otherwise. */
 	/* See Appendix A.1 of the RTP specification.                        */
+	
+	UNUSED(session);
 
 	/* We only accept RTPv2 packets... */
         if (packet->fields.v != 2) {

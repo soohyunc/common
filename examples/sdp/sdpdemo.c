@@ -29,7 +29,7 @@ sap_handler(sap_packet *packet)
 
   print_sap_packet(packet); 
 
-  session = sdp_parse(packet->payload);
+  session = sdp_parse((char*)packet->payload);
 
   printf("Original Packet: \n++++\n%s++++\n", session->original);
 
@@ -37,7 +37,7 @@ sap_handler(sap_packet *packet)
 
   new_payload = sdp_make(session);
 
-  if(strcmp(packet->payload, new_payload) != 0)
+  if(strcmp((char *)packet->payload, new_payload) != 0)
     printf("The two sdp payloads are different!\n");
 
   xfree(new_payload);
