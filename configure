@@ -5193,7 +5193,7 @@ fi
 # Done, create the output files....
           ac_config_headers="$ac_config_headers src/uclconf.h:src/config.h.in"
 
-                                                            ac_config_files="$ac_config_files Makefile doc/Makefile examples/Makefile examples/rtp/Makefile src/Makefile tests/Makefile"
+                                                            ac_config_files="$ac_config_files Makefile doc/Makefile examples/Makefile examples/rtp/Makefile examples/sdp/Makefile examples/sap/Makefile src/Makefile tests/Makefile"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -5721,6 +5721,8 @@ do
   "doc/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
   "examples/Makefile" ) CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
   "examples/rtp/Makefile" ) CONFIG_FILES="$CONFIG_FILES examples/rtp/Makefile" ;;
+  "examples/sdp/Makefile" ) CONFIG_FILES="$CONFIG_FILES examples/sdp/Makefile" ;;
+  "examples/sap/Makefile" ) CONFIG_FILES="$CONFIG_FILES examples/sap/Makefile" ;;
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
   "tests/Makefile" ) CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
   "src/uclconf.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/uclconf.h:src/config.h.in" ;;

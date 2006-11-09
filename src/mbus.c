@@ -266,15 +266,15 @@ static void mb_header(int seqnum, struct timeval ts, char reliable, const char *
       /* monster kludge */
       if(*dst == '(')
 #ifdef WIN32
-	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %I64d%03ld %c (%s) %s ", seqnum, (__int64)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //SV-XXX: WIN32
+	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %I64d%03ld %c (%s) %s ", seqnum, (__int64)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //WIN32
 #else
-	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %jd%03ld %c (%s) %s ", seqnum, (intmax_t)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //SV-XXX: FreeBSD
+	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %jd%03ld %c (%s) %s ", seqnum, (intmax_t)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //FreeBSD
 #endif
       else
 #ifdef WIN32
-	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %I64d%03ld %c (%s) (%s) ", seqnum, (__int64)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //SV-XXX: WIN32
+	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %I64d%03ld %c (%s) (%s) ", seqnum, (__int64)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //WIN32
 #else
-	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %jd%03ld %c (%s) (%s) ", seqnum, (intmax_t)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //SV-XXX: FreeBSD
+	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %jd%03ld %c (%s) (%s) ", seqnum, (intmax_t)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //FreeBSD
 #endif
 
       mb_bufpos += strlen(mb_bufpos);
@@ -333,7 +333,7 @@ static void mb_send(struct mbus *m)
 		assert(len < MBUS_BUF_SIZE);
 		assert(m->encrkeylen == 8);
 		xmemchk();
-	    qfDES_CBC_e((unsigned char *)m->encrkey, (unsigned char *)mb_cryptbuf, len - (MBUS_AUTH_LEN+1), initVec); //SV-XXX
+	    qfDES_CBC_e((unsigned char *)m->encrkey, (unsigned char *)mb_cryptbuf, len - (MBUS_AUTH_LEN+1), initVec);
 		xmemchk();
 	    memcpy(mb_buffer + (MBUS_AUTH_LEN+1), mb_cryptbuf, len);
       }
@@ -341,8 +341,8 @@ static void mb_send(struct mbus *m)
       
       if (m->hashkey != NULL) {
 	    /* Authenticate... */
-	    hmac_md5((unsigned char *)mb_buffer + MBUS_AUTH_LEN+1, len - (MBUS_AUTH_LEN+1), (unsigned char *)m->hashkey, m->hashkeylen, (unsigned char *)digest); //SV-XXX
-	    base64encode((unsigned char *)digest, 12, (unsigned char *)mb_buffer, MBUS_AUTH_LEN); //SV-XXX
+	    hmac_md5((unsigned char *)mb_buffer + MBUS_AUTH_LEN+1, len - (MBUS_AUTH_LEN+1), (unsigned char *)m->hashkey, m->hashkeylen, (unsigned char *)digest);
+	    base64encode((unsigned char *)digest, 12, (unsigned char *)mb_buffer, MBUS_AUTH_LEN);
 	}
 	xmemchk();
 	udp_send(m->s, mb_buffer, len);
@@ -790,8 +790,8 @@ int mbus_recv(struct mbus *m, void *data, struct timeval *timeout)
 	    authlen = 0;
 	    if(m->hashkey != NULL){
 		  authlen = MBUS_AUTH_LEN;
-		  hmac_md5((unsigned char *)buffer + authlen + 1, buffer_len - authlen - 1, (unsigned char *)m->hashkey, m->hashkeylen, (unsigned char *)digest); //SV-XXX
-		  base64encode((unsigned char *)digest, 12, (unsigned char *)ackbuf, 16); //SV-XXX
+		  hmac_md5((unsigned char *)buffer + authlen + 1, buffer_len - authlen - 1, (unsigned char *)m->hashkey, m->hashkeylen, (unsigned char *)digest);
+		  base64encode((unsigned char *)digest, 12, (unsigned char *)ackbuf, 16);
 		  if ((strncmp(auth, ackbuf, 16) != 0)) {
 			debug_msg("Failed to authenticate message...\n");
 			continue;
@@ -810,7 +810,7 @@ int mbus_recv(struct mbus *m, void *data, struct timeval *timeout)
 			}
 			memcpy(mb_cryptbuf, buffer, buffer_len);
 			memset(initVec, 0, 8);
-			qfDES_CBC_d((unsigned char *)m->encrkey, (unsigned char *)mb_cryptbuf, buffer_len, initVec); //SV-XXX
+			qfDES_CBC_d((unsigned char *)m->encrkey, (unsigned char *)mb_cryptbuf, buffer_len, initVec);
 			memcpy(buffer, mb_cryptbuf, buffer_len);
 		}
 

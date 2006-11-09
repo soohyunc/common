@@ -109,9 +109,13 @@ struct _socket_udp {
 #ifdef HAVE_IPv6
 	struct in6_addr	 addr6;
 #endif /* HAVE_IPv6 */
+    struct in_addr	iface_addr;
 };
 
 #ifdef WIN32
+
+#include <Iphlpapi.h>
+
 /* Want to use both Winsock 1 and 2 socket options, but since
 * IPv6 support requires Winsock 2 we have to add own backwards
 * compatibility for Winsock 1.
@@ -259,7 +263,7 @@ static socket_udp *udp_init4(const char *addr, const char *iface, uint16_t rx_po
 {
 	int                 	 reuse = 1, udpbufsize=131072;
 	struct sockaddr_in  	 s_in;
-	struct in_addr		 iface_addr;
+
 #ifdef WIN32
       int recv_buf_size = 65536;
 #endif
@@ -269,6 +273,7 @@ static socket_udp *udp_init4(const char *addr, const char *iface, uint16_t rx_po
 	s->rx_port = rx_port;
 	s->tx_port = tx_port;
 	s->ttl     = ttl;
+	
 	if (inet_pton(AF_INET, addr, &s->addr4) != 1) {
 		struct hostent *h = gethostbyname(addr);
 		if (h == NULL) {
@@ -279,13 +284,13 @@ static socket_udp *udp_init4(const char *addr, const char *iface, uint16_t rx_po
 		memcpy(&(s->addr4), h->h_addr_list[0], sizeof(s->addr4));
 	}
 	if (iface != NULL) {
-		if (inet_pton(AF_INET, iface, &iface_addr) != 1) {
+		if (inet_pton(AF_INET, iface, &s->iface_addr) != 1) {
 			debug_msg("Illegal interface specification\n");
                         free(s);
 			return NULL;
 		}
 	} else {
-		iface_addr.s_addr = 0;
+		s->iface_addr.s_addr = 0;
 	}
 	s->fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (s->fd < 0) {
@@ -322,7 +327,7 @@ static socket_udp *udp_init4(const char *addr, const char *iface, uint16_t rx_po
 		struct ip_mreq  imr;
 		
 		imr.imr_multiaddr.s_addr = s->addr4.s_addr;
-		imr.imr_interface.s_addr = iface_addr.s_addr;
+		imr.imr_interface.s_addr = s->iface_addr.s_addr;
 		
 		if (SETSOCKOPT(s->fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &imr, sizeof(struct ip_mreq)) != 0) {
 			socket_error("setsockopt IP_ADD_MEMBERSHIP");
@@ -338,8 +343,8 @@ static socket_udp *udp_init4(const char *addr, const char *iface, uint16_t rx_po
 			socket_error("setsockopt IP_MULTICAST_TTL");
 			return NULL;
 		}
-		if (iface_addr.s_addr != 0) {
-			if (SETSOCKOPT(s->fd, IPPROTO_IP, IP_MULTICAST_IF, (char *) &iface_addr, sizeof(iface_addr)) != 0) {
+		if (s->iface_addr.s_addr != 0) {
+			if (SETSOCKOPT(s->fd, IPPROTO_IP, IP_MULTICAST_IF, (char *) &s->iface_addr, sizeof(s->iface_addr)) != 0) {
 				socket_error("setsockopt IP_MULTICAST_IF");
 				return NULL;
 			}
@@ -348,9 +353,8 @@ static socket_udp *udp_init4(const char *addr, const char *iface, uint16_t rx_po
 		if (SETSOCKOPT(s->fd, IPPROTO_IP, IP_TTL, (char *) &ttl, sizeof(ttl)) != 0) {
 			socket_error("setsockopt IP_TTL");
 			return NULL;
-		}
 	}
-
+	}
         s->addr = strdup(addr);
 	return s;
 }
@@ -360,7 +364,8 @@ static void udp_exit4(socket_udp *s)
 	if (IN_MULTICAST(ntohl(s->addr4.s_addr))) {
 		struct ip_mreq  imr;
 		imr.imr_multiaddr.s_addr = s->addr4.s_addr;
-		imr.imr_interface.s_addr = INADDR_ANY;
+		imr.imr_interface.s_addr = s->iface_addr.s_addr;
+
 		if (SETSOCKOPT(s->fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *) &imr, sizeof(struct ip_mreq)) != 0) {
 			socket_error("setsockopt IP_DROP_MEMBERSHIP");
 			abort();
@@ -406,7 +411,7 @@ udp_sendv4(socket_udp *s, struct iovec *vector, int count)
 	msg.msg_namelen    = sizeof(s_in);
 	msg.msg_iov        = vector;
 	msg.msg_iovlen     = count;
-#ifdef NDEF	/* Solaris does something different here... can we just ignore these fields? [csp] */
+#ifdef HAVE_MSGHDR_MSGCTRL /* Solaris does something different here... can we just ignore these fields? [csp] */
 	msg.msg_control    = 0;
 	msg.msg_controllen = 0;
 	msg.msg_flags      = 0;
@@ -523,7 +528,7 @@ static socket_udp *udp_init6(const char *addr, const char *iface, uint16_t rx_po
 		imr.ipv6mr_interface = 0;
 #endif
 		
-		if (SETSOCKOPT(s->fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, (char *) &imr, sizeof(imr)) != 0) {
+		if (SETSOCKOPT(s->fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, (char *) &imr, sizeof(struct ipv6_mreq)) != 0) {
 			socket_error("setsockopt IPV6_ADD_MEMBERSHIP");
 			return NULL;
 		}
@@ -730,6 +735,110 @@ int udp_addr_valid(const char *addr)
         return udp_addr_valid4(addr) | udp_addr_valid6(addr);
 }
 
+/*
+ * On Windows, determine the name of the interface
+ * that will be used for this group.
+ *
+ * If we don't do this, rat will break on machines
+ * with multiple network interfaces.
+ */
+#ifdef WIN32
+static char *find_win32_interface(const char *addr)
+{
+    struct in_addr inaddr;
+	char *iface = 0;
+
+    if (inet_pton(AF_INET, addr, &inaddr))
+    {
+		MIB_IPFORWARDROW route;
+			
+		debug_msg("got addr %x\n", inaddr.s_addr);
+		if (GetBestRoute(inaddr.s_addr, 0, &route) == NO_ERROR)
+		{
+			IP_ADAPTER_INFO oneinfo;
+			PIP_ADAPTER_INFO allinfo = 0;
+			int len;
+			struct in_addr dst, mask, nexthop;
+
+			dst.s_addr = route.dwForwardDest;
+			mask.s_addr = route.dwForwardMask;
+			nexthop.s_addr = route.dwForwardNextHop;
+
+			debug_msg("found route dst=%s mask=%s nexthop=%s ifindex=%d\n",
+				inet_ntoa(dst), inet_ntoa(mask), inet_ntoa(nexthop),
+				route.dwForwardIfIndex);
+
+			len = sizeof(oneinfo);
+			if (GetAdaptersInfo(&oneinfo, &len) == ERROR_SUCCESS)
+			{
+				debug_msg("got allinfo in one\n");
+				allinfo = &oneinfo;
+			}
+			else
+			{
+				allinfo = (PIP_ADAPTER_INFO) malloc(len);
+				if (GetAdaptersInfo(allinfo, &len) != ERROR_SUCCESS)
+				{
+					debug_msg("Could not get adapter info\n");
+					free(allinfo);
+					allinfo = 0;
+				}
+			}
+
+			if (allinfo)
+			{
+
+				PIP_ADAPTER_INFO a;
+				{
+					for (a = allinfo; a != 0; a = a->Next)
+					{
+
+						debug_msg("name='%s' desc='%s' index=%d\n", 
+							a->AdapterName, a->Description, a->Index);
+
+						if (a->Index == route.dwForwardIfIndex)
+						{
+							PIP_ADDR_STRING s;
+							/* Take the first address. */
+
+							s = &a->IpAddressList;
+							iface = _strdup(s->IpAddress.String);
+							debug_msg("Found address '%s'\n", iface);
+						}
+					}
+				}
+			}
+#if 0 /* This is the stuff that just works on XP, sigh. */
+			len = sizeof(addrs);
+			if (GetAdaptersAddresses(AF_INET, 0, 0, addrs, &len) == ERROR_SUCCESS)
+			{
+				PIP_ADAPTER_ADDRESSES a;
+
+				a = addrs;
+
+				while (a && (iface == 0))
+				{
+					if (a->IfIndex == route.dwForwardIfIndex)
+					{
+						struct sockaddr_in *sockaddr;
+				
+						sockaddr = (struct sockaddr_in *) a->FirstUnicastAddress->Address.lpSockaddr;
+
+						debug_msg("name=%s addr=%s\n", 
+							a->AdapterName, inet_ntoa(sockaddr->sin_addr));
+						iface = _strdup(inet_ntoa(sockaddr->sin_addr));
+					}
+					a = a->Next;
+				}
+			}
+#endif
+		}
+    }
+
+	return iface;
+}
+#endif /* WIN32 */
+
 /**
  * udp_init:
  * @addr: character string containing an IPv4 or IPv6 network address.
@@ -766,7 +875,26 @@ socket_udp *udp_init_if(const char *addr, const char *iface, uint16_t rx_port, u
 	socket_udp *res;
 	
 	if (strchr(addr, ':') == NULL) {
+		char *computed_iface = 0;
+		/* 
+		 * On WIN32, if user did not pass an interface, 
+		 * find the default interface for that address
+		 * and pass it in .
+		 */
+
+#ifdef WIN32
+		if (iface == 0)
+		{
+			computed_iface = find_win32_interface(addr);
+			iface = computed_iface;
+		}
+#endif
+
 		res = udp_init4(addr, iface, rx_port, tx_port, ttl);
+
+		if (computed_iface)
+			free(computed_iface);
+
 	} else {
 		res = udp_init6(addr, iface, rx_port, tx_port, ttl);
 	}

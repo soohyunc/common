@@ -249,7 +249,6 @@ static void rijndaelIVKAT (FILE *fp, int keyLength) {
 	fflush(fp);
 	memset(keyMaterial, 0, sizeof (keyMaterial));
 	for (i = 0; i < keyLength/8; i++) {
-		//SV-XXX sprintf(&keyMaterial[2*i], "%02X", i);
 		sprintf((char *)&keyMaterial[2*i], "%02X", i);
 	}
 	fprintf(fp, "KEY=%s\n", keyMaterial);
@@ -454,7 +453,6 @@ static void rijndaelECB_MCT(FILE *fp, int keyLength, BYTE direction) {
 		fprintf(fp, "\nI=%d\n", i);
 		/* prepare key: */
 		for (j = 0; j < keyLength/8; j++) {
-			//SV-XXX sprintf(&keyMaterial[2*j], "%02X", binKey[j]);
 			sprintf((char *)&keyMaterial[2*j], "%02X", binKey[j]);
 		}
 		keyMaterial[keyLength/4] = 0;
@@ -545,7 +543,6 @@ static void rijndaelCBC_MCT(FILE *fp, int keyLength, BYTE direction) {
 		fprintf (fp, "\nI=%d\n", i);
 		/* prepare key: */
 		for (j = 0; j < keyLength/8; j++) {
-			//SV-XXX sprintf (&keyMaterial[2*j], "%02X", binKey[j]);
 			sprintf ((char *)&keyMaterial[2*j], "%02X", binKey[j]);
 		}
 		keyMaterial[keyLength/4] = 0;

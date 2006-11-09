@@ -88,7 +88,6 @@ typedef struct {                    /* changed order of the components */
 
 /*  Function prototypes  */
 
-//SV-XXX int makeKey(keyInstance *key, BYTE direction, int keyLen, char *keyMaterial);
 int makeKey(keyInstance *key, BYTE direction, int keyLen,  BYTE *keyMaterial);
 
 int cipherInit(cipherInstance *cipher, BYTE mode, char *IV);
