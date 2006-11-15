@@ -259,6 +259,37 @@ static int udp_addr_valid4(const char *dst)
         return FALSE;
 }
 
+uint32_t    udp_socket_addr4(socket_udp *s)
+{
+  if (s == NULL) {
+    return 0;
+  }
+
+  if (s->mode != IPv4) {
+    return 0;
+  }
+
+  return (uint32_t)(s->addr4.s_addr);  
+}
+
+uint16_t    udp_socket_txport(socket_udp *s)
+{
+	if (s == NULL) {
+		return 0;
+	}
+
+	return s->tx_port;
+}
+
+int udp_socket_ttl(socket_udp *s)
+{
+	if (s == NULL) {
+		return -1;
+	}
+
+	return s->ttl;
+}
+
 static socket_udp *udp_init4(const char *addr, const char *iface, uint16_t rx_port, uint16_t tx_port, int ttl)
 {
 	int                 	 reuse = 1, udpbufsize=131072;
@@ -387,6 +418,7 @@ udp_send4(socket_udp *s, char *buffer, int buflen)
 	assert(buffer != NULL);
 	assert(buflen > 0);
 	
+	memset(&s_in, 0, sizeof(struct sockaddr_in));
 	s_in.sin_family      = AF_INET;
 	s_in.sin_addr.s_addr = s->addr4.s_addr;
 	s_in.sin_port        = htons(s->tx_port);
@@ -982,19 +1014,16 @@ int udp_recv(socket_udp *s, char *buffer, int buflen)
 	return 0;
 }
 
-static fd_set	rfd;
-static fd_t	max_fd;
-
 /**
  * udp_fd_zero:
  * 
  * Clears file descriptor from set associated with UDP sessions (see select(2)).
  * 
  **/
-void udp_fd_zero(void)
+void udp_fd_zero( fd_set *readset, fd_t *max_fd )
 {
-	FD_ZERO(&rfd);
-	max_fd = 0;
+	FD_ZERO(readset);
+	*max_fd = 0;
 }
 
 /**
@@ -1003,11 +1032,11 @@ void udp_fd_zero(void)
  * 
  * Adds file descriptor associated of @s to set associated with UDP sessions.
  **/
-void udp_fd_set(socket_udp *s)
+void udp_fd_set( fd_set *readset, fd_t *max_fd, socket_udp *s)
 {
-	FD_SET(s->fd, &rfd);
-	if (s->fd > (fd_t)max_fd) {
-		max_fd = s->fd;
+	FD_SET(s->fd, readset);
+	if (s->fd > (fd_t)*max_fd) {
+		*max_fd = s->fd;
 	}
 }
 
@@ -1020,9 +1049,11 @@ void udp_fd_set(socket_udp *s)
  *
  * Returns: non-zero if set, zero otherwise.
  **/
-int udp_fd_isset(socket_udp *s)
+int udp_fd_isset( fd_set *readset, fd_t *max_fd, socket_udp *s)
 {
-	return FD_ISSET(s->fd, &rfd);
+	UNUSED(max_fd);
+
+	return FD_ISSET(s->fd, readset);
 }
 
 /**
@@ -1033,9 +1064,9 @@ int udp_fd_isset(socket_udp *s)
  * 
  * Return value: number of UDP sessions ready for reading.
  **/
-int udp_select(struct timeval *timeout)
+int udp_select( fd_set *readset, fd_t max_fd, struct timeval *timeout)
 {
-	return select(max_fd + 1, &rfd, NULL, NULL, timeout);
+	return select(max_fd + 1, readset, NULL, NULL, timeout);
 }
 
 /**

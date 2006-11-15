@@ -57,6 +57,9 @@ void test_net_udp(void)
 	char		 buf1[BUFSIZE], buf2[BUFSIZE];
 	const char	*hname;
 	int		 rc, i;
+        fd_set  	 rfd;
+        fd_t    	 max_fd;
+
 	
 #ifndef WIN32
 
@@ -87,9 +90,9 @@ void test_net_udp(void)
 	}
 	timeout.tv_sec  = 1;
 	timeout.tv_usec = 0;
-	udp_fd_zero();
-	udp_fd_set(s1);
-	rc = udp_select(&timeout);
+	udp_fd_zero( &rfd, &max_fd );
+	udp_fd_set( &rfd, &max_fd, s1 );
+	rc = udp_select(&rfd, max_fd, &timeout);
 	if (rc < 0) {
 		perror("fail");
 		goto abort_loopback;
@@ -98,7 +101,7 @@ void test_net_udp(void)
 		printf("fail: no data waiting\n");
 		goto abort_loopback;
 	}
-	if (!udp_fd_isset(s1)) {
+	if (!udp_fd_isset(&rfd, &max_fd, s1)) {
 		printf("fail: no data on file descriptor\n");
 		goto abort_loopback;
 	}
@@ -138,10 +141,10 @@ abort_loopback:
 	}
 	timeout.tv_sec  = 1;
 	timeout.tv_usec = 0;
-	udp_fd_zero();
-	udp_fd_set(s1);
-	udp_fd_set(s2);
-	rc = udp_select(&timeout);
+	udp_fd_zero( &rfd, &max_fd );
+	udp_fd_set( &rfd, &max_fd, s1 );
+	udp_fd_set( &rfd, &max_fd, s2 );
+	rc = udp_select(&rfd, max_fd, &timeout);
 	if (rc < 0) {
 		perror("fail");
 		goto abort_unicast;
@@ -150,7 +153,7 @@ abort_loopback:
 		printf("fail: no data waiting (no route to %s?)\n", hname);
 		goto abort_unicast;
 	}
-	if (!udp_fd_isset(s2)) {
+	if (!udp_fd_isset(&rfd, &max_fd, s2)) {
 		printf("fail: no data on file descriptor\n");
 		goto abort_unicast;
 	}
@@ -183,9 +186,9 @@ abort_unicast:
 	}
 	timeout.tv_sec  = 1;
 	timeout.tv_usec = 0;
-	udp_fd_zero();
-	udp_fd_set(s1);
-	rc = udp_select(&timeout);
+	udp_fd_zero( &rfd, &max_fd );
+	udp_fd_set( &rfd, &max_fd, s1 );
+	rc = udp_select(&rfd, max_fd, &timeout);
 	if (rc < 0) {
 		perror("fail");
 		goto abort_multicast;
@@ -194,7 +197,7 @@ abort_unicast:
 		printf("fail: no data waiting (no multicast loopback route?)\n");
 		goto abort_multicast;
 	}
-	if (!udp_fd_isset(s1)) {
+	if (!udp_fd_isset(&rfd, &max_fd, s1)) {
 		printf("fail: no data on file descriptor\n");
 		goto abort_multicast;
 	}
@@ -227,9 +230,9 @@ abort_multicast:
         	}
         	timeout.tv_sec  = 1;
         	timeout.tv_usec = 0;
-        	udp_fd_zero();
-        	udp_fd_set(s1);
-        	rc = udp_select(&timeout);
+        	udp_fd_zero( &rfd, &max_fd );
+        	udp_fd_set( &rfd, &max_fd, s1 );
+        	rc = udp_select(&rfd, max_fd, &timeout);
         	if (rc < 0) {
                 	perror("fail");
                 	goto abort_length;
@@ -238,7 +241,7 @@ abort_multicast:
                 	printf("fail: no data waiting (no multicast loopback route?)\n");
                 	goto abort_length;
         	}
-        	if (!udp_fd_isset(s1)) {
+        	if (!udp_fd_isset(&rfd, &max_fd, s1)) {
                 	printf("fail: no data on file descriptor\n");
                 	goto abort_length;
         	}
@@ -274,9 +277,9 @@ abort_length:
 	}
 	timeout.tv_sec  = 1;
 	timeout.tv_usec = 0;
-	udp_fd_zero();
-	udp_fd_set(s1);
-	rc = udp_select(&timeout);
+	udp_fd_zero( &rfd, &max_fd );
+	udp_fd_set( &rfd, &max_fd, s1 );
+	rc = udp_select(&rfd, max_fd, &timeout);
 	if (rc < 0) {
 		perror("fail");
 		goto abort_loopback_ipv6;
@@ -285,7 +288,7 @@ abort_length:
 		printf("fail: no data waiting\n");
 		goto abort_loopback_ipv6;
 	}
-	if (!udp_fd_isset(s1)) {
+	if (!udp_fd_isset(&rfd, &max_fd, s1)) {
 		printf("fail: no data on file descriptor\n");
 		goto abort_loopback_ipv6;
 	}
@@ -318,9 +321,9 @@ abort_loopback_ipv6:
 	}
 	timeout.tv_sec  = 1;
 	timeout.tv_usec = 0;
-	udp_fd_zero();
-	udp_fd_set(s1);
-	rc = udp_select(&timeout);
+	udp_fd_zero( &rfd, &max_fd );
+	udp_fd_set( &rfd, &max_fd, s1 );
+	rc = udp_select(&rfd, max_fd, &timeout);
 	if (rc < 0) {
 		perror("fail");
 		goto abort_multicast_ipv6;
@@ -329,7 +332,7 @@ abort_loopback_ipv6:
 		printf("fail: no data waiting (no multicast loopback route?)\n");
 		goto abort_multicast_ipv6;
 	}
-	if (!udp_fd_isset(s1)) {
+	if (!udp_fd_isset(&rfd, &max_fd, s1)) {
 		printf("fail: no data on file descriptor\n");
 		goto abort_multicast_ipv6;
 	}
@@ -381,9 +384,9 @@ abort_multicast_ipv6:
 		}
 	        timeout.tv_sec  = 10;
         	timeout.tv_usec = 0;
-        	udp_fd_zero();
-        	udp_fd_set(s2);
-        	rc = udp_select(&timeout);
+        	udp_fd_zero( &rfd, &max_fd );
+        	udp_fd_set( &rfd, &max_fd, s2 );
+        	rc = udp_select(&rfd, max_fd, &timeout);
 		if (rc < 0) {
 			perror("fail (child)");
 			exit(0);
@@ -392,7 +395,7 @@ abort_multicast_ipv6:
 			printf("fail (child): no data waiting (no multicast loopback route?)\n");
 			exit(0);
 		}
-		if (!udp_fd_isset(s2)) {
+		if (!udp_fd_isset(&rfd, &max_fd, s2)) {
 			printf("fail (child): no data on file descriptor\n");
 			exit(0);
 		}
@@ -415,9 +418,9 @@ abort_multicast_ipv6:
 		/* parent */
                 timeout.tv_sec  = 10;
                 timeout.tv_usec = 0;
-                udp_fd_zero();
-                udp_fd_set(s1);
-                rc = udp_select(&timeout);
+                udp_fd_zero( &rfd, &max_fd );
+                udp_fd_set( &rfd, &max_fd, s1 );
+                rc = udp_select(&rfd, max_fd, &timeout);
 		if (rc < 0) {
 			perror("fail (parent)");
 			goto abort_bsd;
@@ -426,7 +429,7 @@ abort_multicast_ipv6:
 			printf("fail (parent): no data waiting (no multicast loopback route?)\n");
 			goto abort_bsd;
 		}
-		if (!udp_fd_isset(s1)) {
+		if (!udp_fd_isset(&rfd, &max_fd, s1)) {
 			printf("fail (parent): no data on file descriptor\n");
 			goto abort_bsd;
 		}

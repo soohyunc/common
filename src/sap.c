@@ -96,11 +96,13 @@ sap_recv(struct sap *s, struct timeval *timeout)
   sap_packet sap_p;
   sap_header *sap_h;
   static unsigned char *packetptr;
+  fd_set rfd;
+  fd_t	 max_fd;
 
-  udp_fd_zero();
-  udp_fd_set(s->s);
-  if(udp_select(timeout) > 0) {
-    if(udp_fd_isset(s->s)) {
+  udp_fd_zero( &rfd, &max_fd );
+  udp_fd_set( &rfd, &max_fd, s->s);
+  if(udp_select( &rfd, max_fd, timeout) > 0) {
+    if(udp_fd_isset( &rfd, &max_fd, s->s)) {
       uint8_t buffer[SAP_MAX_PACKET_LEN];
       int     buflen;
       buflen = udp_recv(s->s, (char *)buffer, SAP_MAX_PACKET_LEN);

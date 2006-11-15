@@ -305,7 +305,7 @@ static void mb_send(struct mbus *m)
  
 	mbus_validate(m);
 
-    *mb_bufpos = '\0';
+      *mb_bufpos = '\0';
 	assert((mb_bufpos - mb_buffer) < MBUS_BUF_SIZE);
 	assert(strlen(mb_buffer) < MBUS_BUF_SIZE);
 
@@ -756,6 +756,8 @@ int mbus_recv(struct mbus *m, void *data, struct timeval *timeout)
 	unsigned char		 initVec[8] = {0,0,0,0,0,0,0,0};
 	struct timeval		 t;
 	struct mbus_parser	*mp, *mp2;
+	fd_set	rfd;
+	fd_t	max_fd;
 
 	mbus_validate(m);
 
@@ -768,11 +770,12 @@ int mbus_recv(struct mbus *m, void *data, struct timeval *timeout)
 		memset(buffer, 0, MBUS_BUF_SIZE);
 	    assert(m != NULL);
                 assert(m->s != NULL);
-		udp_fd_zero();
-		udp_fd_set(m->s);
+		udp_fd_zero( &rfd, &max_fd);
+		udp_fd_set( &rfd, &max_fd, m->s);
 		t.tv_sec  = timeout->tv_sec;
 		t.tv_usec = timeout->tv_usec;
-                if ((udp_select(&t) > 0) && udp_fd_isset(m->s)) {
+                if ((udp_select( &rfd, max_fd, &t) > 0) && 
+		    udp_fd_isset( &rfd, &max_fd, m->s)) {
 			buffer_len = udp_recv(m->s, buffer, MBUS_BUF_SIZE);
 			if (buffer_len > 0) {
 				rx = TRUE;

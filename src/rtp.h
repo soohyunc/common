@@ -61,14 +61,14 @@ typedef struct {
 	/* having to free the csrc, data and extn blocks separately.  */
 	/* WARNING: Don't change the size of the first portion of the */
 	/* struct without changing RTP_PACKET_HEADER_SIZE to match.   */
-    struct _meta {
+  struct _meta {
 	uint32_t	*csrc;
 	char		*data;
 	int		 data_len;
 	unsigned char	*extn;
 	uint16_t	 extn_len;	/* Size of the extension in 32 bit words minus one */
 	uint16_t	 extn_type;	/* Extension type field in the RTP packet header   */
-    } meta;
+  } meta;
 
     struct _fields {
 	/* The following map directly onto the RTP packet header...   */
@@ -204,6 +204,12 @@ rtp_t		rtp_init_if(const char *addr, char *iface,
 			    rtp_callback callback,
 			    uint8_t *userdata);
 
+int              rtp_set_umtp_dest(struct rtp *session,
+				   const char *addr,
+                                   uint16_t port,
+				   uint16_t src_cookie,
+				   uint16_t dst_cookie);
+
 void		 rtp_send_bye(struct rtp *session);
 void		 rtp_done(struct rtp *session);
 
@@ -248,5 +254,7 @@ uint16_t	 rtp_get_rx_port(struct rtp *session);
 uint16_t	 rtp_get_tx_port(struct rtp *session);
 int		 rtp_get_ttl(struct rtp *session);
 uint8_t		*rtp_get_userdata(struct rtp *session);
+
+int		rtp_get_ssrc_count(struct rtp *session);
 
 #endif /* __RTP_H__ */

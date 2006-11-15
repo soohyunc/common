@@ -53,13 +53,17 @@ int         udp_send(socket_udp *s, char *buffer, int buflen);
 int	    udp_sendv(socket_udp *s, struct iovec *vector, int count);
 #endif
 
+uint32_t    udp_socket_addr4(socket_udp *s);
+uint16_t    udp_socket_txport(socket_udp *s);
+int         udp_socket_ttl(socket_udp *s);
+
 const char *udp_host_addr(socket_udp *s);
 int         udp_fd(socket_udp *s);
 
-int         udp_select(struct timeval *timeout);
-void        udp_fd_zero(void);
-void        udp_fd_set(socket_udp *s);
-int         udp_fd_isset(socket_udp *s);
+int         udp_select( fd_set *readset, int max_fd, struct timeval *timeout);
+void        udp_fd_zero( fd_set *readset, int *max_fd );
+void        udp_fd_set( fd_set *readset, int *max_fd, socket_udp *s);
+int         udp_fd_isset( fd_set *readset, int *max_fd, socket_udp *s);
 
 #if defined(__cplusplus)
 }
