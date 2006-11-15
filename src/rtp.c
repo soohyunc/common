@@ -917,7 +917,7 @@ static char *get_cname(socket_udp *s)
                 	strcat(cname, "@");
         	}
 	} else {
-		strncpy(cname, "nobody@", MAXCNAMELEN - 1);
+		strncpy(cname, "UNKNOWN@", MAXCNAMELEN - 1);
 	}
 #endif
         
