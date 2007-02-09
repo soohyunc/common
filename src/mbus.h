@@ -40,6 +40,15 @@
 #define MBUS_MESSAGE_LOST           1
 #define MBUS_DESTINATION_UNKNOWN    2
 #define MBUS_DESTINATION_NOT_UNIQUE 3
+#define MBUS_ERR_MAX		    4
+
+static char *mbus_errlist[] = {
+"MBUS_OK",
+"MBUS_MESSAGE_LOST",
+"MBUS_DESTINATION_UNKNOWN",
+"MBUS_DESTINATION_NOT_UNIQUE",
+"MBUS_UNKOWN_ERR"
+};
 
 struct mbus;
 
