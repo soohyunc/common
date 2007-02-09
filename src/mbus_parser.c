@@ -165,10 +165,13 @@ int mbus_parse_int(struct mbus_parser *m, int *i)
                 m->buffer++;
 		CHECK_OVERRUN;
         }
+	/* Have to set errno to zero before checking for it as strtol/etc doesn't change it if 
+	it is already set */
+	errno = 0;
 
 	*i = (int) strtol(m->buffer, &p, 10);
 	if (errno == ERANGE) {
-		debug_msg("integer out of range: %d\n", *i);
+		debug_msg("integer out of range: %d, mbus:%s\n", *i, m->buffer);
 		abort();
 		return FALSE;
 	}
