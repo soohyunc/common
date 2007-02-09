@@ -696,8 +696,9 @@ explore_null(pai, hostname, servname, res)
 
 	/*
 	 * filter out AFs that are not supported by the kernel
-	 * XXX errno?
+	 * XXX errno? Added =0 below.
 	 */
+	errno = 0;
 	s = socket(pai->ai_family, SOCK_DGRAM, 0);
 	if (s < 0) {
 		if (errno != EMFILE)
