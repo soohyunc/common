@@ -59,6 +59,14 @@
 #define MBUS_MAGIC	0x87654321
 #define MBUS_MSG_MAGIC	0x12345678
 
+char mbus_errlist[][30] = {
+  "MBUS_OK",
+  "MBUS_MESSAGE_LOST",
+  "MBUS_DESTINATION_UNKNOWN",
+  "MBUS_DESTINATION_NOT_UNIQUE",
+  "MBUS_UNKOWN_ERR"
+};
+
 struct mbus_msg {
 	struct mbus_msg	*next;
 	struct timeval	 send_time;	/* Time the message was sent, to trigger a retransmit */
