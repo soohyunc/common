@@ -353,7 +353,9 @@ static void mb_send(struct mbus *m)
 	    base64encode((unsigned char *)digest, 12, (unsigned char *)mb_buffer, MBUS_AUTH_LEN);
 	}
 	xmemchk();
-	udp_send(m->s, mb_buffer, len);
+	if (udp_send(m->s, mb_buffer, len) < 0) {
+		printf("Mbus send failed - did you forget to open UDP port 47000 in your host firewall?\n");
+	}
 	xfree(mb_buffer);
 }
 
