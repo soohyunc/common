@@ -404,8 +404,12 @@ static void mbus_get_key(struct mbus_config *m, struct mbus_key *key, const char
                                 assert(key->key!=NULL);
 				key->key_len = strlen(key->key);
 				tmp = (char *) xmalloc(key->key_len);
-				key->key_len = base64decode((unsigned char *)key->key, key->key_len, (unsigned char *)tmp, key->key_len);
 				key->key = tmp;
+				if ((key->key_len = base64decode((unsigned char *)key->key, key->key_len, (unsigned char *)tmp, key->key_len))==-1) {
+				  debug_msg("Error in base64decode  of key from file - using NO encyption\n");
+				  key->key     = NULL;
+				  key->key_len = 0;
+				}
 			} else {
 				key->key     = NULL;
 				key->key_len = 0;
