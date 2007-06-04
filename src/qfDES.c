@@ -12,7 +12,7 @@ Added 2 August 1996, Saleem
 #include "qfDES.h"
 #include "crypt_random.h"
 
-typedef unsigned long Word;
+typedef uint32_t Word;
 
 #define B00 0x80000000
 #define B01 0x40000000
