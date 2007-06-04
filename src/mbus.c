@@ -276,13 +276,13 @@ static void mb_header(int seqnum, struct timeval ts, char reliable, const char *
 #ifdef WIN32
 	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %I64d%03ld %c (%s) %s ", seqnum, (__int64)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //WIN32
 #else
-	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %jd%03ld %c (%s) %s ", seqnum, (intmax_t)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //FreeBSD
+	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %jd%03ld %c (%s) %s ", seqnum, (intmax_t)ts.tv_sec,(long)ts.tv_usec/1000, reliable, src, dst); //FreeBSD
 #endif
       else
 #ifdef WIN32
 	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %I64d%03ld %c (%s) (%s) ", seqnum, (__int64)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //WIN32
 #else
-	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %jd%03ld %c (%s) (%s) ", seqnum, (intmax_t)ts.tv_sec,ts.tv_usec/1000, reliable, src, dst); //FreeBSD
+	    sprintf(mb_bufpos, "\nmbus/1.0 %6d %jd%03ld %c (%s) (%s) ", seqnum, (intmax_t)ts.tv_sec, (long)ts.tv_usec/1000, reliable, src, dst); //FreeBSD
 #endif
 
       mb_bufpos += strlen(mb_bufpos);
