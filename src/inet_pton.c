@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-#ifndef HAVE_INET_PTON
+#ifdef NEED_INET_PTON
 #include "config_unix.h"
 #include "config_win32.h"
 #include "inet_pton.h"
@@ -217,4 +217,3 @@ inet_pton6(src, dst)
 }
 
 #endif
-
