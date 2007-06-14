@@ -83,7 +83,6 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\common\src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
@@ -103,7 +102,7 @@
 				OutputFile=".\Debug/testcommon.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\common\src\Debug"
+				AdditionalLibraryDirectories="\src\common\Debug"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\Debug/testcommon.pdb"
 				SubSystem="1"
@@ -145,7 +144,6 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\common\src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
@@ -164,7 +162,6 @@
 				OutputFile=".\Release/testcommon.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\common\src\Debug"
 				ProgramDatabaseFile=".\Release/testcommon.pdb"
 				SubSystem="1"
 				TargetMachine="1"/>
@@ -228,9 +225,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\test_aes.c">
-			</File>
-			<File
 				RelativePath="test_base64.c">
 				<FileConfiguration
 					Name="Debug IPv6|Win32">
@@ -285,12 +279,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\test_mbus_addr.c">
-			</File>
-			<File
-				RelativePath=".\test_mbus_parser.c">
-			</File>
-			<File
 				RelativePath="test_md5.c">
 				<FileConfiguration
 					Name="Debug IPv6|Win32">
@@ -316,9 +304,6 @@
 						Optimization="2"
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\test_memory.c">
 			</File>
 			<File
 				RelativePath="test_net_udp.c">
