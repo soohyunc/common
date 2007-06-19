@@ -393,7 +393,7 @@ void mbus_retransmit(struct mbus *m)
 
 	/* diff is time in milliseconds that the message has been awaiting an ACK */
 	diff = ((time.tv_sec * 1000) + (time.tv_usec / 1000)) - ((curr->send_time.tv_sec * 1000) + (curr->send_time.tv_usec / 1000));
-	if (diff > 10000) {
+	if (diff > 5000) {
 		debug_msg("Reliable mbus message failed!\n");
 		if (m->err_handler == NULL) {
 			abort();
@@ -414,13 +414,13 @@ void mbus_retransmit(struct mbus *m)
 	/* Note: We only send one retransmission each time, to avoid
 	 * overflowing the receiver with a burst of requests...
 	 */
-	if ((diff > 750) && (curr->retransmit_count == 2)) {
-		debug_msg("Reliable mbus message resending after 750ms\n");
+	if ((diff > 500*(curr->retransmit_count)) ) {
+		debug_msg("Reliable mbus message resending after %dms\n", 500*curr->retransmit_count);
 		resend(m, curr);
 		return;
-	} 
-	if ((diff > 500) && (curr->retransmit_count == 1)) {
-		debug_msg("Reliable mbus message resending after 500ms\n");
+	}
+	if ((diff > 750) && (curr->retransmit_count == 2)) {
+		debug_msg("Reliable mbus message resending after 750ms\n");
 		resend(m, curr);
 		return;
 	} 
