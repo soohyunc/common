@@ -2507,7 +2507,7 @@ static uint8_t *format_rtcp_sdes(uint8_t *buffer, int buflen, uint32_t ssrc, str
 	common->count   = 1;
 	common->pt      = RTCP_SDES;
 	common->length  = 0;
-	packet += sizeof(common);
+	packet += sizeof(rtcp_common);
 
 	*((uint32_t *) packet) = htonl(ssrc);
 	packet += 4;
@@ -2851,7 +2851,7 @@ static void rtp_send_bye_now(struct rtp *session)
 	common->count   = 1;
 	common->pt      = RTCP_BYE;
 	common->length  = htons(1);
-	ptr += sizeof(common);
+	ptr += sizeof(rtcp_common);
 	
 	*((uint32_t *) ptr) = htonl(session->my_ssrc);  
 	ptr += 4;
