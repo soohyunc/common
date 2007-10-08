@@ -3068,7 +3068,7 @@ int rtp_set_encryption_key(struct rtp* session, const char *passphrase)
  	 */
  
  	slash = strchr(passphrase, '/');
- 	if (slash == 0)
+ 	if (slash == 0 || (slash - passphrase) < 4)
  	{
 	    session->encryption_algorithm = xstrdup("DES");
  	}
@@ -3108,16 +3108,29 @@ int rtp_set_encryption_key(struct rtp* session, const char *passphrase)
 	{
 		return des_initialize(session, hash, sizeof(hash));
 	}
-	else if ((strcmp(session->encryption_algorithm, "Rijndael") == 0) ||
-	         (strcmp(session->encryption_algorithm, "AES") == 0))
+	else if ((strcasecmp(session->encryption_algorithm, "Rijndael") == 0) ||
+	         (strcasecmp(session->encryption_algorithm, "AES") == 0))
 	{
 		return rijndael_initialize(session, hash, sizeof(hash));
 	}
 	else
 	{
-		debug_msg("Encryption algorithm \"%s\" not found\n",
-			  session->encryption_algorithm);
-		return FALSE;
+		debug_msg("Encryption algorithm \"%s\" not found guessing..\n",
+		    session->encryption_algorithm);
+		 if (session->encryption_algorithm[0]=='r' ||
+		    session->encryption_algorithm[0]=='R' ||
+		    session->encryption_algorithm[0]=='a' ||
+		    session->encryption_algorithm[0]=='A') {
+		  strcpy(session->encryption_algorithm,"AES");
+		  debug_msg("Using Encryption algorithm \"%s\" \n",
+		      session->encryption_algorithm);
+		  return rijndael_initialize(session, hash, sizeof(hash));
+		} else  /* Fallback to DES */
+		  strcpy(session->encryption_algorithm,"DES");
+		  debug_msg("Using Encryption algorithm \"%s\" \n",
+		      session->encryption_algorithm);
+		  return des_initialize(session, hash, sizeof(hash));
+		}
 	}
 }
 
@@ -3208,11 +3221,12 @@ static int rijndael_initialize(struct rtp *session, u_char *hash, int hash_len)
 	session->encrypt_func = rijndael_encrypt;
 	session->decrypt_func = rijndael_decrypt;
 
+	debug_msg("makeKey for encryption : %d\n", hash_len);
 	rc = makeKey(&session->crypto_state.rijndael.keyInstEncrypt,
 		     DIR_ENCRYPT, hash_len * 8, hash);
 	if (rc < 0)
 	{
-		debug_msg("makeKey failed: %d\n", rc);
+		debug_msg("makeKey for encryption failed: %d\n", rc);
 		return FALSE;
 	}
 
@@ -3220,7 +3234,7 @@ static int rijndael_initialize(struct rtp *session, u_char *hash, int hash_len)
 		     DIR_DECRYPT, hash_len * 8, hash);
 	if (rc < 0)
 	{
-		debug_msg("makeKey failed: %d\n", rc);
+		debug_msg("makeKey for decryption failed: %d\n", rc);
 		return FALSE;
 	}
 
