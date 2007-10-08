@@ -40,6 +40,7 @@
 #include "debug.h"
 #include "rijndael-api-fst.h"
 #include "rijndael-alg-fst.h"
+#define BINARY_KEY_MATERIAL 
 
 int makeKey(keyInstance *key, BYTE direction, int keyLen, BYTE *keyMaterial) {
 	int i;
@@ -68,6 +69,7 @@ int makeKey(keyInstance *key, BYTE direction, int keyLen, BYTE *keyMaterial) {
 
 	/* initialize key schedule: */
 	keyMat = key->keyMaterial;
+#ifndef BINARY_KEY_MATERIAL 
  	for (i = 0; i < key->keyLen/8; i++) {
 		int t, v;
 
@@ -85,6 +87,12 @@ int makeKey(keyInstance *key, BYTE direction, int keyLen, BYTE *keyMaterial) {
 		
 		cipherKey[i] = (u8)v;
 	}
+#else 
+	for (i = 0; i < key->keyLen/8; i++) { 
+		cipherKey[i] = (u8)keyMat[i];  
+	} 
+#endif /* ?BINARY_KEY_MATERIAL */ 
+
 	if (direction == DIR_ENCRYPT) {
 		key->Nr = rijndaelKeySetupEnc(key->rk, cipherKey, keyLen);
 	} else {
@@ -101,6 +109,7 @@ int cipherInit(cipherInstance *cipher, BYTE mode, char *IV) {
 		return BAD_CIPHER_MODE;
 	}
 	if (IV != NULL) {
+#ifndef BINARY_KEY_MATERIAL 
 		int i;
  		for (i = 0; i < MAX_IV_SIZE; i++) {
 			int t, j;
@@ -119,6 +128,10 @@ int cipherInit(cipherInstance *cipher, BYTE mode, char *IV) {
 			
 			cipher->IV[i] = (u8)j;
 		}
+#else 
+		memcpy(cipher->IV, IV, MAX_IV_SIZE); 
+#endif /* ?BINARY_KEY_MATERIAL */ 
+
 	} else {
 		memset(cipher->IV, 0, MAX_IV_SIZE);
 	}
