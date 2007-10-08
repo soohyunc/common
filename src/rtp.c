@@ -3125,7 +3125,7 @@ int rtp_set_encryption_key(struct rtp* session, const char *passphrase)
 		  debug_msg("Using Encryption algorithm \"%s\" \n",
 		      session->encryption_algorithm);
 		  return rijndael_initialize(session, hash, sizeof(hash));
-		} else  /* Fallback to DES */
+		} else  /* Fallback to DES */ {
 		  strcpy(session->encryption_algorithm,"DES");
 		  debug_msg("Using Encryption algorithm \"%s\" \n",
 		      session->encryption_algorithm);
