@@ -634,7 +634,7 @@ create_source(struct rtp *session, uint32_t ssrc, int probation)
 			event.ssrc = ssrc;
 			event.type = SOURCE_CREATED;
 			event.data = NULL;
-		event.ts   = &event_ts;
+			event.ts   = &event_ts;
 			session->callback(session, &event);
 		}
         }
@@ -936,7 +936,7 @@ static void init_opt(struct rtp *session)
 {
 	/* Default option settings. */
 	rtp_set_option(session, RTP_OPT_PROMISC,           FALSE);
-	rtp_set_option(session, RTP_OPT_WEAK_VALIDATION,   FALSE);
+	rtp_set_option(session, RTP_OPT_WAIT_FOR_RTCP,     FALSE);
 	rtp_set_option(session, RTP_OPT_FILTER_MY_PACKETS, FALSE);
 	rtp_set_option(session, RTP_OPT_REUSE_PACKET_BUFS, FALSE);
 }
@@ -1170,7 +1170,7 @@ int rtp_set_option(struct rtp *session, rtp_option optname, int optval)
 	assert((optval == TRUE) || (optval == FALSE));
 
 	switch (optname) {
-		case RTP_OPT_WEAK_VALIDATION:
+		case RTP_OPT_WAIT_FOR_RTCP:
 			session->opt->wait_for_rtcp = optval;
 			break;
 	        case RTP_OPT_PROMISC:
@@ -1209,7 +1209,7 @@ int rtp_get_ssrc_count(struct rtp *session)
 int rtp_get_option(struct rtp *session, rtp_option optname, int *optval)
 {
 	switch (optname) {
-		case RTP_OPT_WEAK_VALIDATION:
+		case RTP_OPT_WAIT_FOR_RTCP:
 			*optval = session->opt->wait_for_rtcp;
                         break;
         	case RTP_OPT_PROMISC:
@@ -1404,14 +1404,13 @@ rtp_recv_data(struct rtp *session, uint32_t curr_rtp_ts)
 		}
 		if (validate_rtp(session, packet, buflen)) {
 			if (session->opt->wait_for_rtcp) {
-				s = create_source(session, packet->fields.ssrc, TRUE);
-			} else {
 				s = get_source(session, packet->fields.ssrc);
+			} else {
+				s = create_source(session, packet->fields.ssrc, TRUE);
 			}
 			if (session->opt->promiscuous_mode) {
 				if (s == NULL) {
-					create_source(session, packet->fields.ssrc, FALSE);
-					s = get_source(session, packet->fields.ssrc);
+					s = create_source(session, packet->fields.ssrc, FALSE);
 				}
 				process_rtp(session, curr_rtp_ts, packet, s);
 				return; /* We don't free "packet", that's done by the callback function... */
