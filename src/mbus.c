@@ -1063,7 +1063,7 @@ char *mbus_rendezvous_waiting(struct mbus *m, char *addr, char *token, void *dat
 		mbus_retransmit(m);
                 /* limit waiting period to 20 secs - longer than that its an error */
                 if (rendezvous_timeout_usec) {
-                   if (waiting_limitcount++ > 200) {
+                   if (!waiting_limitcount--) {
                     debug_msg("mbus_rendezvous_waiting waited:%d interations\n",waiting_limitcount);
                     break;
                    }
@@ -1110,7 +1110,7 @@ char *mbus_rendezvous_go(struct mbus *m, char *token, void *data, const long ren
 		mbus_retransmit(m);
                 /* limit waiting period to 20 secs - longer than that it's an error */
                 if (rendezvous_timeout_usec) {
-                    if (waiting_limitcount++ > 200) {
+                    if (!waiting_limitcount--) {
                             debug_msg("mbus_rendezvous_go waited:%d interations\n",waiting_limitcount);
                             return NULL;
                     }
