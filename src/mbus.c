@@ -440,8 +440,8 @@ void mbus_heartbeat(struct mbus *m, int interval)
 
 	gettimeofday(&curr_time, NULL);
 	if (curr_time.tv_sec - m->last_heartbeat.tv_sec >= interval) {
-        m->seqnum=(++m->seqnum)%999999;
-	    mb_header(m->seqnum, curr_time, 'U', m->addr, "()", -1);
+                m->seqnum=(++m->seqnum)%999999;
+	        mb_header(m->seqnum, curr_time, 'U', m->addr, "()", -1);
 		mb_add_command("mbus.hello", "");
 		mb_send(m);
 
@@ -771,7 +771,7 @@ int mbus_recv(struct mbus *m, void *data, struct timeval *timeout)
 
 	mbus_validate(m);
 
-      //	debug_msg("receiving\n");
+      	//debug_msg("receiving\n");
 	
 	rx = FALSE;
 	loop_count = 0;
@@ -1027,7 +1027,7 @@ static void rz_handler(char *src, char *cmd, char *args, void *data)
 	}
 }
 
-char *mbus_rendezvous_waiting(struct mbus *m, char *addr, char *token, void *data)
+char *mbus_rendezvous_waiting(struct mbus *m, char *addr, char *token, void *data, const long rendezvous_timeout_usec)
 {
 	/* Loop, sending mbus.waiting(token) to "addr", until we get mbus.go(token) */
 	/* back from our peer. Any other mbus commands received whilst waiting are  */
@@ -1035,6 +1035,11 @@ char *mbus_rendezvous_waiting(struct mbus *m, char *addr, char *token, void *dat
 	char		*token_e, *peer;
 	struct timeval	 timeout;
 	struct mbus_rz	*r;
+        int              waiting_limitcount;
+        
+        /* Calculate number of loop iterations equivalent to timeout
+           if its zero then wait forever.....*/
+        waiting_limitcount = rendezvous_timeout_usec/100000;
 
 	mbus_validate(m);
 
@@ -1047,7 +1052,8 @@ char *mbus_rendezvous_waiting(struct mbus *m, char *addr, char *token, void *dat
 	r->cmd_handler = m->cmd_handler;
 	m->cmd_handler = rz_handler;
 	token_e        = mbus_encode_str(token);
-	while (r->peer == NULL) {
+	
+        while (r->peer == NULL) {
 		timeout.tv_sec  = 0;
 		timeout.tv_usec = 100000;
 		mbus_heartbeat(m, 1);
@@ -1055,6 +1061,13 @@ char *mbus_rendezvous_waiting(struct mbus *m, char *addr, char *token, void *dat
 		mbus_send(m);
 		mbus_recv(m, r, &timeout);
 		mbus_retransmit(m);
+                /* limit waiting period to 20 secs - longer than that its an error */
+                if (rendezvous_timeout_usec) {
+                   if (waiting_limitcount++ > 200) {
+                    debug_msg("mbus_rendezvous_waiting waited:%d interations\n",waiting_limitcount);
+                    break;
+                   }
+                }
 	}
 	m->cmd_handler = r->cmd_handler;
 	peer = r->peer;
@@ -1063,7 +1076,7 @@ char *mbus_rendezvous_waiting(struct mbus *m, char *addr, char *token, void *dat
 	return peer;
 }
 
-char *mbus_rendezvous_go(struct mbus *m, char *token, void *data)
+char *mbus_rendezvous_go(struct mbus *m, char *token, void *data, const long rendezvous_timeout_usec)
 {
 	/* Wait until we receive mbus.waiting(token), then send mbus.go(token) back to   */
 	/* the sender of that message. Whilst waiting, other mbus commands are processed */
@@ -1071,6 +1084,11 @@ char *mbus_rendezvous_go(struct mbus *m, char *token, void *data)
 	char		*token_e, *peer;
 	struct timeval	 timeout;
 	struct mbus_rz	*r;
+        int              waiting_limitcount=0;
+
+        /* Calculate number of loop iterations equivalent to timeout
+         *  if its zero then wait forever.....*/
+        waiting_limitcount = rendezvous_timeout_usec/100000;
 
 	mbus_validate(m);
 
@@ -1090,6 +1108,13 @@ char *mbus_rendezvous_go(struct mbus *m, char *token, void *data)
 		mbus_send(m);
 		mbus_recv(m, r, &timeout);
 		mbus_retransmit(m);
+                /* limit waiting period to 20 secs - longer than that it's an error */
+                if (rendezvous_timeout_usec) {
+                    if (waiting_limitcount++ > 200) {
+                            debug_msg("mbus_rendezvous_go waited:%d interations\n",waiting_limitcount);
+                            return NULL;
+                    }
+                }
 	}
 
 	mbus_qmsgf(m, r->peer, TRUE, "mbus.go", "%s", token_e);
