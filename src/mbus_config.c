@@ -673,7 +673,7 @@ void mbus_get_net_addr(struct mbus_config *m, char *net_addr, uint16_t *net_port
 	} else {
 		strcpy(net_addr, MBUS_DEFAULT_NET_ADDR);
 	}
-	debug_msg("using Addr:%s Port:%d Scope:%s for MBUS\n", 
+	debug_msg("\tusing Addr:%s\n\t\t\t\tPort:%d\n\t\t\t\tScope:%s for MBUS\n", 
 		  net_addr, *net_port, (*net_scope==0)?SCOPE_HOSTLOCAL_NAME:SCOPE_LINKLOCAL_NAME);
 	xfree(buf);
 	xfree(line);
