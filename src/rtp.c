@@ -1428,7 +1428,8 @@ rtp_recv_data(struct rtp *session, uint32_t curr_rtp_ts)
 					debug_msg("RTP packet from probationary source ignored...\n");
 				}
 			} else {
-				debug_msg("RTP packet from unknown source ignored\n");
+				debug_msg("RTP packet from unknown source(ssrc:%d, seq:%d, ts:%d) ignored\n",
+				    packet->fields.ssrc, packet->fields.seq, packet->fields.ts);
 			}
 		} else {
 			session->invalid_rtp_count++;
