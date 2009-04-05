@@ -38,6 +38,10 @@
 #ifndef __RIJNDAEL_API_FST_H
 #define __RIJNDAEL_API_FST_H
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include "rijndael-alg-fst.h"
 
@@ -106,5 +110,9 @@ int padDecrypt(cipherInstance *cipher, keyInstance *key,
 
 int cipherUpdateRounds(cipherInstance *cipher, keyInstance *key,
         BYTE *input, int inputLen, BYTE *outBuffer, int Rounds);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif /* __RIJNDAEL_API_FST_H */

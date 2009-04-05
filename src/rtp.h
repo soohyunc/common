@@ -39,6 +39,10 @@
 #ifndef __RTP_H__
 #define __RTP_H__
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #define RTP_VERSION 2
 #define RTP_MAX_PACKET_LEN 1500
 
@@ -256,5 +260,9 @@ int		 rtp_get_ttl(struct rtp *session);
 uint8_t		*rtp_get_userdata(struct rtp *session);
 
 int		rtp_get_ssrc_count(struct rtp *session);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif /* __RTP_H__ */

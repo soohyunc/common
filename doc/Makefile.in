@@ -10,6 +10,7 @@ CODE_DIR=../src
 CODE_SRCS=$(CODE_DIR)/*.c $(CODE_DIR)/*.h
 
 html: sgml $(SGML_TOPLEVEL)
+	-mkdir html
 	-cd html && gtkdoc-mkhtml $(MODULE) ../$(SGML_TOPLEVEL)
 
 sgml: tmpl
@@ -26,6 +27,11 @@ clean:
 
 distclean: clean
 	-rm -f $(MODULE)-decl-list.txt $(MODULE)-decl.txt Makefile
-	-rm -rf sgml/*
+	-rm -rf sgml
+	-rm -rf tmpl
+	-rm -rf html
+	-rm -rf *.stamp
+	-rm -rf *undocumented.txt
+	-rm -rf uclmmbase-docs.sgml
 
 .PHONY: html sgml tmpl clean distclean

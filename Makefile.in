@@ -24,10 +24,15 @@ clean-recursive:
 	for s in $(SUBDIRS) ; do (cd $$s && $(MAKE) clean) ; done
 
 distclean: distclean-recursive
-	rm -f Makefile config.cache config.log
+	rm -f Makefile config.cache config.log config.status libtool
+	rm -rf autom4te.cache
 
 distclean-recursive:
 	for s in $(SUBDIRS) ; do (cd $$s && $(MAKE) distclean) ; done
 
-.PHONY: clean clean-recursive distclean
+LIBTOOL_DEPS = @LIBTOOL_DEPS@
+libtool: $(LIBTOOL_DEPS)
+	$(SHELL) ./config.status --recheck
 
+.PHONY: all install all-recursive install-recursive \
+	clean clean-recursive distclean distclean-recursive

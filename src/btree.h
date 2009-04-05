@@ -19,6 +19,10 @@
 #ifndef __BTREE_H__
 #define __BTREE_H__
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 typedef struct s_btree btree_t;
 
 /* btree_create fills the *tree with a new binary tree.  Returns TRUE on     */
@@ -58,6 +62,10 @@ int btree_get_max_key (btree_t *tree, uint32_t *key);
 /* TRUE and fills key with key if possible, FALSE otherwise.                 */
 
 int btree_get_next_key (btree_t *tree, uint32_t cur_key, uint32_t *next_key);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif /* __BTREE_H__ */
 

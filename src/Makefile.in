@@ -3,17 +3,19 @@
 # This probably requires GNU make.
 #
 
+top_builddir=@top_builddir@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+
 DEFS   = @DEFS@
 CFLAGS = @CFLAGS@ $(DEFS)
 LIBS   = @LIBS@
 CC     = @CC@
-AR     = ar
+LDFLAGS= @LDFLAGS@
 RANLIB = @RANLIB@
-HOST   = @host@
-INSTALL= @srcdir@/../install-sh -c
-TARGET = libuclmmbase.a
-
-exec_prefix=@exec_prefix@
+LIBTOOL= @LIBTOOL@
+INSTALL= $(top_builddir)/install-sh -c
 
 OBJS = crypt_random.o debug.o md5.o memory.o net_udp.o qfDES.o util.o hmac.o  \
        base64.o ntp.o rtp.o drand48.o mbus_parser.o mbus_config.o mbus_addr.o \
@@ -22,38 +24,31 @@ OBJS = crypt_random.o debug.o md5.o memory.o net_udp.o qfDES.o util.o hmac.o  \
 
 SRCS = $(OBJS:%.o=%.c)
 
-all: version.h $(TARGET) 
+all: version.h libuclmmbase.la
 
-$(TARGET): $(OBJS)
-	$(AR) r $(TARGET) $(OBJS)
-	$(RANLIB) $(TARGET)
+CCLD = $(CC)
+libuclmmbase.la: $(OBJS:%.o=%.lo)
+	$(LIBTOOL) --tag=CC --mode=link $(CCLD) $^ -o libuclmmbase.a
+	$(LIBTOOL) --tag=CC --mode=link $(CCLD) $(LDFLAGS)-rpath $(libdir) -version-info 1 -shared $^ -o $@
 
 version.h: ../VERSION
 	sed -e 's/.*/#define CCL_VERSION "v&"/' $? > version.h
 
 install: all
-	$(INSTALL) $(TARGET) @prefix@/lib/$(TARGET)
+	$(LIBTOOL) --mode=install $(INSTALL) libuclmmbase.la $(libdir)
 	for header in *.h; do $(INSTALL) $$header @prefix@/include/common/$(header); done
-
 
 .c.o:
 	$(CC) $(CFLAGS) $(INC) -c $<
 
+%.lo: %.c
+	$(LIBTOOL) --tag=CC --mode=compile $(CC)  $(CFLAGS) $(INC) -c $<
+
 clean:
-	-rm -f $(OBJS) version.h $(TARGET) tags 
+	-rm -f *.o *.lo version.h libuclmmbase.la libuclmmbase.a
+	-rm -rf .libs
 
 distclean:	clean
 	-rm -f Makefile config.status config.cache uclconf.h
 
-etags:
-	etags *.[ch]
-
-ctags:
-	ctags *.[ch]
-
-release:
-	cvs tag release-`cat ../VERSION | sed "s/\./-/g"`
-
-depend: $(SRCS)
-	makedepend $(DEFS) $(INC) $(SRCS)
 

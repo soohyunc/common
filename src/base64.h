@@ -33,6 +33,18 @@
  * SUCH DAMAGE.
  */
 
+#ifndef __BASE64_H__
+#define __BASE64_H__
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 int base64encode(const unsigned char *input, int input_length, unsigned char *output, int output_length);
 int base64decode(const unsigned char *input, int input_length, unsigned char *output, int output_length);
 
+#if defined(__cplusplus)
+}
+#endif
+
+#endif /* __BASE64_H__ */

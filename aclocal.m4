@@ -1,0 +1,5 @@
+builtin(include,m4/libtool.m4)
+builtin(include,m4/ltoptions.m4)
+builtin(include,m4/ltsugar.m4)
+builtin(include,m4/ltversion.m4)
+builtin(include,m4/lt~obsolete.m4)

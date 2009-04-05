@@ -26,6 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+#ifndef __SOCKSTORAGE_H__
+#define __SOCKSTORAGE_H__
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 struct sockaddr_storage {
 #ifdef HAVE_SOCKADDR_SA_LEN
 	uint8_t __ss_len;
@@ -36,3 +44,9 @@ struct sockaddr_storage {
 	uint8_t fill[127];
 #endif /* HAVE_SOCKADDR_SA_LEN */
 };
+
+#if defined(__cplusplus)
+}
+#endif
+
+#endif /* __SOCKSTORAGE_H__ */
