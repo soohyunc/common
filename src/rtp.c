@@ -1406,10 +1406,12 @@ rtp_recv_data(struct rtp *session, uint32_t curr_rtp_ts)
 			if (session->opt->wait_for_rtcp) {
 				s = get_source(session, packet->fields.ssrc);
 			} else {
+					debug_msg("creating src...\n");
 				s = create_source(session, packet->fields.ssrc, TRUE);
 			}
 			if (session->opt->promiscuous_mode) {
 				if (s == NULL) {
+					debug_msg("promiscuous_mode on creating src...\n");
 					s = create_source(session, packet->fields.ssrc, FALSE);
 				}
 				process_rtp(session, curr_rtp_ts, packet, s);
@@ -1983,6 +1985,7 @@ int rtp_set_sdes(struct rtp *session, uint32_t ssrc, rtcp_sdes_type type, const 
 {
 	source	*s;
 	char	*v;
+	int	 i;
 
 	check_database(session);
 
@@ -2031,6 +2034,10 @@ int rtp_set_sdes(struct rtp *session, uint32_t ssrc, rtcp_sdes_type type, const 
 			s->priv = v; 
 			break;
 		default :
+			/* Convert non-printable chars into '?' */
+			for (i=0; i<length; i++) {
+			  if (!isalnum(v[i])) v[i]='?';
+			}
 			debug_msg("Unknown SDES item (type=%d, value=%s)\n", type, v);
                         xfree(v);
 			check_database(session);
