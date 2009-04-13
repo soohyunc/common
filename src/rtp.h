@@ -189,8 +189,8 @@ typedef enum {
         RTP_OPT_PROMISC =	    1,
         RTP_OPT_WAIT_FOR_RTCP	=   2,
         RTP_OPT_FILTER_MY_PACKETS = 3,
-	RTP_OPT_REUSE_PACKET_BUFS = 4  /* Each data packet is written into the same buffer, */
-	                               /* rather than malloc()ing a new buffer each time.   */
+        RTP_OPT_REUSE_PACKET_BUFS = 4  /* Each data packet is written into the same buffer, */
+                                       /* rather than malloc()ing a new buffer each time.   */
 } rtp_option;
 
 /* API */
@@ -207,7 +207,7 @@ rtp_t		rtp_init_if(const char *addr, char *iface,
 
 int              rtp_set_umtp_dest(struct rtp *session,
 				   const char *addr,
-                                   uint16_t port,
+				   uint16_t port,
 				   uint16_t src_cookie,
 				   uint16_t dst_cookie);
 
@@ -219,10 +219,13 @@ int 		 rtp_get_option(struct rtp *session, rtp_option optname, int *optval);
 
 int 		 rtp_recv(struct rtp *session, 
 			  struct timeval *timeout, uint32_t curr_rtp_ts);
+int 		 rtp_send_rtppacket(struct rtp *session,
+				    char *packet,
+				    unsigned int packet_len);
 int 		 rtp_send_data(struct rtp *session, 
 			       uint32_t rtp_ts, char pt, int m, 
 			       int cc, uint32_t csrc[], 
-                               char *data, int data_len, 
+			       char *data, int data_len, 
 			       char *extn, uint16_t extn_len, uint16_t extn_type);
 #ifndef WIN32
 int              rtp_send_data_iov(struct rtp *session, 
@@ -257,6 +260,9 @@ int		 rtp_get_ttl(struct rtp *session);
 uint8_t		*rtp_get_userdata(struct rtp *session);
 
 int		rtp_get_ssrc_count(struct rtp *session);
+
+int		rtp_get_rtp_fd(struct rtp *session);
+int		rtp_get_rtcp_fd(struct rtp *session);
 
 #if defined(__cplusplus)
 }

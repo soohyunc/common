@@ -7,6 +7,7 @@ top_builddir=@top_builddir@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
+includedir=@includedir@
 
 DEFS   = @DEFS@
 CFLAGS = @CFLAGS@ $(DEFS)
@@ -15,7 +16,7 @@ CC     = @CC@
 LDFLAGS= @LDFLAGS@
 RANLIB = @RANLIB@
 LIBTOOL= @LIBTOOL@
-INSTALL= $(top_builddir)/install-sh -c
+INSTALL= @INSTALL@
 
 OBJS = crypt_random.o debug.o md5.o memory.o net_udp.o qfDES.o util.o hmac.o  \
        base64.o ntp.o rtp.o drand48.o mbus_parser.o mbus_config.o mbus_addr.o \
@@ -35,8 +36,12 @@ version.h: ../VERSION
 	sed -e 's/.*/#define CCL_VERSION "v&"/' $? > version.h
 
 install: all
-	$(LIBTOOL) --mode=install $(INSTALL) libuclmmbase.la $(libdir)
-	for header in *.h; do $(INSTALL) $$header @prefix@/include/common/$(header); done
+	test -d $(DESTDIR)$(includedir)/uclmmbase || \
+		$(INSTALL) -d $(DESTDIR)$(includedir)/uclmmbase
+	test -d "$(DESTDIR)$(libdir)" || \
+		$(INSTALL) -d "$(DESTDIR)$(libdir)"
+	$(LIBTOOL) --mode=install $(INSTALL) libuclmmbase.la $(DESTDIR)$(libdir)
+	for header in *.h; do $(INSTALL) $$header $(DESTDIR)$(includedir)/uclmmbase/$(header); done
 
 .c.o:
 	$(CC) $(CFLAGS) $(INC) -c $<
@@ -50,5 +55,4 @@ clean:
 
 distclean:	clean
 	-rm -f Makefile config.status config.cache uclconf.h
-
 

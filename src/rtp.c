@@ -2140,6 +2140,48 @@ const rtcp_rr *rtp_get_rr(struct rtp *session, uint32_t reporter, uint32_t repor
 }
 
 /**
+ * rtp_send_rtppacket:
+ * @session: The session pointer (returned by rtp_init())
+ * @packet: Preformatted RTP packet (includes header and payload)
+ * @packet_len: Total length of the RTP packet
+ *
+ * Return value is the number of bytes sent.  -1 if there was an error.
+ **/
+int rtp_send_rtppacket(struct rtp* session, char* packet, unsigned int packet_len)
+{
+	int rc;
+
+	/*
+	 * Usual parameter checking.  At the very least, packet
+	 * must include a header.
+	 *
+	 * TODO? Check the validity of the packet's header or do
+	 * we trust the sender?
+	 */
+
+	if (	(session == NULL) || 
+		(packet == NULL) ||
+		(packet_len > RTP_MAX_PACKET_LEN) ||
+		(packet_len < offsetof(rtp_packet, fields)))
+	{
+		return -1;
+	}
+
+	check_database(session);
+
+	rc = udp_send(session->rtp_socket, packet, packet_len);
+
+	/* Update the RTCP statistics... */
+	session->we_sent     = TRUE;
+	session->rtp_pcount += 1;
+	session->rtp_bcount += packet_len;
+	gettimeofday(&session->last_rtp_send_time, NULL);
+
+	check_database(session);
+	return rc;
+}
+
+/**
  * rtp_send_data:
  * @session: the session pointer (returned by rtp_init())
  * @rtp_ts: The timestamp reflects the sampling instant of the first octet of the RTP data to be sent.  The timestamp is expressed in media units.
@@ -3336,3 +3378,28 @@ int rtp_get_ttl(struct rtp *session)
 	return session->ttl;
 }
 
+/**
+ * rtp_get_rtp_fd:
+ * @session: The RTP session.
+ *
+ * Retrieves the rtp socket file description of a session.  
+ *
+ * Returns: The integer value of the file descriptor.
+ */
+int rtp_get_rtp_fd(struct rtp *session)
+{
+	return udp_fd(session->rtp_socket);
+}
+
+/**
+ * rtp_get_rtcp_fd:
+ * @session: The RTP session.
+ *
+ * Retrieves the rtcp socket file description of a session.  
+ *
+ * Returns: The integer value of the file descriptor.
+ */
+int rtp_get_rtcp_fd(struct rtp *session)
+{
+	return udp_fd(session->rtcp_socket);
+}

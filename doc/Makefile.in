@@ -10,7 +10,7 @@ CODE_DIR=../src
 CODE_SRCS=$(CODE_DIR)/*.c $(CODE_DIR)/*.h
 
 html: sgml $(SGML_TOPLEVEL)
-	-mkdir html
+	-test -d html || mkdir html
 	-cd html && gtkdoc-mkhtml $(MODULE) ../$(SGML_TOPLEVEL)
 
 sgml: tmpl
@@ -21,6 +21,8 @@ tmpl: scan
 
 scan: $(CODE_SRCS)
 	gtkdoc-scan --module=$(MODULE) --source-dir=$(CODE_DIR)
+
+install:
 
 clean:
 	-rm -f *.bak sgml/*.bak *unused.txt
@@ -34,4 +36,5 @@ distclean: clean
 	-rm -rf *undocumented.txt
 	-rm -rf uclmmbase-docs.sgml
 
-.PHONY: html sgml tmpl clean distclean
+.PHONY: html sgml tmpl install clean distclean
+

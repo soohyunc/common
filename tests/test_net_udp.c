@@ -115,6 +115,10 @@ abort_loopback:
 	hname = udp_host_addr(s1); /* we need this for the unicast test... */
 	udp_exit(s1);
 
+	if (hname == NULL) {
+		printf("fail: cannot resolve our name\n");
+		return;
+	}
 	/**********************************************************************/
 	/* Now we send a packet to ourselves via our real network address...  */
 	printf("UDP/IP networking (IPv4 unicast)....... "); fflush(stdout);
