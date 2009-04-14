@@ -17,6 +17,7 @@ LDFLAGS= @LDFLAGS@
 RANLIB = @RANLIB@
 LIBTOOL= @LIBTOOL@
 INSTALL= @INSTALL@
+SHELL  = @SHELL@
 
 OBJS = crypt_random.o debug.o md5.o memory.o net_udp.o qfDES.o util.o hmac.o  \
        base64.o ntp.o rtp.o drand48.o mbus_parser.o mbus_config.o mbus_addr.o \
