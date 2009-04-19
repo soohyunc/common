@@ -1,6 +1,5 @@
 #
 # Makefile for the common code library project. 
-# This probably requires GNU make.
 #
 
 top_builddir=@top_builddir@
@@ -19,19 +18,18 @@ LIBTOOL= @LIBTOOL@
 INSTALL= @INSTALL@
 SHELL  = @SHELL@
 
-OBJS = crypt_random.o debug.o md5.o memory.o net_udp.o qfDES.o util.o hmac.o  \
-       base64.o ntp.o rtp.o drand48.o mbus_parser.o mbus_config.o mbus_addr.o \
-       mbus.o btree.o asarray.o @LIBOBJS@ rijndael-alg-fst.o \
-       rijndael-api-fst.o sdp.o sap.o 
-
-SRCS = $(OBJS:%.o=%.c)
+LT_OBJS = asarray.lo base64.lo btree.lo crypt_random.lo debug.lo \
+          drand48.lo hmac.lo mbus_addr.lo mbus_config.lo mbus.lo \
+          mbus_parser.lo md5.lo memory.lo net_udp.lo ntp.lo \
+          qfDES.lo rijndael-alg-fst.lo rijndael-api-fst.lo rtp.lo \
+          sap.lo sdp.lo util.lo
 
 all: version.h libuclmmbase.la
 
 CCLD = $(CC)
-libuclmmbase.la: $(OBJS:%.o=%.lo)
-	$(LIBTOOL) --tag=CC --mode=link $(CCLD) $^ -o libuclmmbase.a
-	$(LIBTOOL) --tag=CC --mode=link $(CCLD) $(LDFLAGS)-rpath $(libdir) -version-info 1 -shared $^ -o $@
+libuclmmbase.la: $(LT_OBJS)
+	$(LIBTOOL) --tag=CC --mode=link $(CCLD) $(LT_OBJS) -o libuclmmbase.a
+	$(LIBTOOL) --tag=CC --mode=link $(CCLD) $(LDFLAGS)-rpath $(libdir) -version-info 1 -shared $(LT_OBJS) -o $@
 
 version.h: ../VERSION
 	sed -e 's/.*/#define CCL_VERSION "v&"/' $? > version.h
@@ -44,10 +42,13 @@ install: all
 	$(LIBTOOL) --mode=install $(INSTALL) libuclmmbase.la $(DESTDIR)$(libdir)
 	for header in *.h; do $(INSTALL) $$header $(DESTDIR)$(includedir)/uclmmbase/$(header); done
 
+.SUFFIXES:
+.SUFFIXES: .c .o .lo
+
 .c.o:
 	$(CC) $(CFLAGS) $(INC) -c $<
 
-%.lo: %.c
+.c.lo:
 	$(LIBTOOL) --tag=CC --mode=compile $(CC)  $(CFLAGS) $(INC) -c $<
 
 clean:
@@ -57,3 +58,74 @@ clean:
 distclean:	clean
 	-rm -f Makefile config.status config.cache uclconf.h
 
+
+asarray.lo: asarray.c config_unix.h uclconf.h debug.h \
+  memory.h util.h asarray.h
+
+base64.lo: base64.c config_unix.h uclconf.h debug.h \
+ base64.h
+
+btree.lo: btree.c config_unix.h uclconf.h debug.h memory.h \
+  btree.h
+
+crypt_random.lo: crypt_random.c config_unix.h uclconf.h \
+  crypt_random.h
+
+debug.lo: debug.c config_unix.h uclconf.h debug.h
+
+drand48.lo: drand48.c config_unix.h uclconf.h drand48.h
+
+getaddrinfo.lo: getaddrinfo.c config_unix.h uclconf.h \
+  debug.h memory.h inet_pton.h inet_ntop.h cdecl_ext.h sockstorage.h
+
+gettimeofday.lo: gettimeofday.c config_unix.h uclconf.h \
+  gettimeofday.h
+
+hmac.lo: hmac.c config_unix.h uclconf.h md5.h hmac.h
+
+mbus_addr.lo: mbus_addr.c config_unix.h uclconf.h debug.h \
+  util.h mbus_addr.h
+
+mbus.lo: mbus.c config_unix.h uclconf.h debug.h memory.h \
+  net_udp.h hmac.h qfDES.h base64.h gettimeofday.h vsnprintf.h mbus.h \
+  mbus_config.h mbus_parser.h mbus_addr.h asarray.h
+
+mbus_config.lo: mbus_config.c config_unix.h uclconf.h \
+  debug.h memory.h crypt_random.h base64.h mbus.h mbus_config.h
+
+mbus_parser.lo: mbus_parser.c config_unix.h uclconf.h \
+  debug.h memory.h mbus_parser.h
+
+md5.lo: md5.c config_unix.h uclconf.h md5.h
+
+memory.lo: memory.c config_unix.h uclconf.h debug.h \
+  memory.h util.h
+
+net_udp.lo: net_udp.c config_unix.h uclconf.h debug.h \
+  memory.h inet_pton.h inet_ntop.h vsnprintf.h net_udp.h
+
+ntp.lo: ntp.c config_unix.h uclconf.h gettimeofday.h ntp.h
+
+qfDES.lo: qfDES.c config_unix.h uclconf.h qfDES.h \
+  crypt_random.h
+
+rijndael-alg-fst.lo: rijndael-alg-fst.c config_unix.h uclconf.h \
+  debug.h rijndael-api-fst.h rijndael-alg-fst.h
+
+rijndael-api-fst.lo: rijndael-api-fst.c config_unix.h uclconf.h \
+  debug.h rijndael-api-fst.h rijndael-alg-fst.h
+
+rtp.lo: rtp.c config_unix.h uclconf.h memory.h debug.h \
+  net_udp.h crypt_random.h rijndael-api-fst.h rijndael-alg-fst.h \
+  drand48.h gettimeofday.h qfDES.h md5.h ntp.h rtp.h
+
+sap.lo: sap.c config_unix.h uclconf.h debug.h memory.h \
+  net_udp.h hmac.h qfDES.h base64.h gettimeofday.h vsnprintf.h sap.h
+
+sdp.lo: sdp.c config_unix.h uclconf.h debug.h memory.h \
+  sdp.h
+
+util.lo: util.c config_unix.h uclconf.h debug.h memory.h \
+  util.h
+
+vsnprintf.lo: vsnprintf.c config_unix.h uclconf.h debug.h vsnprintf.h
