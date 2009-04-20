@@ -58,74 +58,17 @@ clean:
 distclean:	clean
 	-rm -f Makefile config.status config.cache uclconf.h
 
+depend:
+	if grep '^# DO NOT DELETE' Makefile >/dev/null; \
+	then \
+		sed -e '/^# DO NOT DELETE/,$$ d' Makefile > Makefile.$$$$ && \
+		mv Makefile.$$$$ Makefile; \
+	fi
+	echo '# DO NOT DELETE THIS LINE -- make depend depends on it.' \
+		>> Makefile; \
+	for src in $(LT_OBJS); do \
+	    $(CC) -S -MM -MT $$src $(CFLAGS) $(INC) `basename $$src .lo`.c \
+	        >> Makefile; \
+	done
 
-asarray.lo: asarray.c config_unix.h uclconf.h debug.h \
-  memory.h util.h asarray.h
-
-base64.lo: base64.c config_unix.h uclconf.h debug.h \
- base64.h
-
-btree.lo: btree.c config_unix.h uclconf.h debug.h memory.h \
-  btree.h
-
-crypt_random.lo: crypt_random.c config_unix.h uclconf.h \
-  crypt_random.h
-
-debug.lo: debug.c config_unix.h uclconf.h debug.h
-
-drand48.lo: drand48.c config_unix.h uclconf.h drand48.h
-
-getaddrinfo.lo: getaddrinfo.c config_unix.h uclconf.h \
-  debug.h memory.h inet_pton.h inet_ntop.h cdecl_ext.h sockstorage.h
-
-gettimeofday.lo: gettimeofday.c config_unix.h uclconf.h \
-  gettimeofday.h
-
-hmac.lo: hmac.c config_unix.h uclconf.h md5.h hmac.h
-
-mbus_addr.lo: mbus_addr.c config_unix.h uclconf.h debug.h \
-  util.h mbus_addr.h
-
-mbus.lo: mbus.c config_unix.h uclconf.h debug.h memory.h \
-  net_udp.h hmac.h qfDES.h base64.h gettimeofday.h vsnprintf.h mbus.h \
-  mbus_config.h mbus_parser.h mbus_addr.h asarray.h
-
-mbus_config.lo: mbus_config.c config_unix.h uclconf.h \
-  debug.h memory.h crypt_random.h base64.h mbus.h mbus_config.h
-
-mbus_parser.lo: mbus_parser.c config_unix.h uclconf.h \
-  debug.h memory.h mbus_parser.h
-
-md5.lo: md5.c config_unix.h uclconf.h md5.h
-
-memory.lo: memory.c config_unix.h uclconf.h debug.h \
-  memory.h util.h
-
-net_udp.lo: net_udp.c config_unix.h uclconf.h debug.h \
-  memory.h inet_pton.h inet_ntop.h vsnprintf.h net_udp.h
-
-ntp.lo: ntp.c config_unix.h uclconf.h gettimeofday.h ntp.h
-
-qfDES.lo: qfDES.c config_unix.h uclconf.h qfDES.h \
-  crypt_random.h
-
-rijndael-alg-fst.lo: rijndael-alg-fst.c config_unix.h uclconf.h \
-  debug.h rijndael-api-fst.h rijndael-alg-fst.h
-
-rijndael-api-fst.lo: rijndael-api-fst.c config_unix.h uclconf.h \
-  debug.h rijndael-api-fst.h rijndael-alg-fst.h
-
-rtp.lo: rtp.c config_unix.h uclconf.h memory.h debug.h \
-  net_udp.h crypt_random.h rijndael-api-fst.h rijndael-alg-fst.h \
-  drand48.h gettimeofday.h qfDES.h md5.h ntp.h rtp.h
-
-sap.lo: sap.c config_unix.h uclconf.h debug.h memory.h \
-  net_udp.h hmac.h qfDES.h base64.h gettimeofday.h vsnprintf.h sap.h
-
-sdp.lo: sdp.c config_unix.h uclconf.h debug.h memory.h \
-  sdp.h
-
-util.lo: util.c config_unix.h uclconf.h debug.h memory.h \
-  util.h
-
-vsnprintf.lo: vsnprintf.c config_unix.h uclconf.h debug.h vsnprintf.h
+# DO NOT DELETE THIS LINE -- make depend depends on it.
