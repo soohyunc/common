@@ -31,7 +31,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* If this machine supports IPv6 the symbol HAVE_IPv6 should */
+/* If this machine supports IPver6 the symbol HAVE_IPv6 should */
 /* be defined in either config_unix.h or config_win32.h. The */
 /* appropriate system header files should also be included   */
 /* by those files.                                           */
@@ -49,15 +49,15 @@
 #include "addrinfo.h"
 #endif
 
-#define IPv4	4
-#define IPv6	6
+#define IPver4	4
+#define IPver6	6
 
 #ifdef WIN2K_IPV6
 const struct	in6_addr	in6addr_any = {IN6ADDR_ANY_INIT};
 #endif
 
 /* This is pretty nasty but it's the simplest way to get round */
-/* the Detexis bug that means their MUSICA IPv6 stack uses     */
+/* the Detexis bug that means their MUSICA IPver6 stack uses     */
 /* IPPROTO_IP instead of IPPROTO_IPV6 in setsockopt calls      */
 /* We also need to define in6addr_any */
 #ifdef  MUSICA_IPV6
@@ -92,7 +92,7 @@ struct ip_mreq {
 #endif
 
 struct _socket_udp {
-	int	 	 mode;	/* IPv4 or IPv6 */
+	int	 	 mode;	/* IPver4 or IPver6 */
         char	        *addr;
 	uint16_t	 rx_port;
 	uint16_t	 tx_port;
@@ -110,12 +110,14 @@ struct _socket_udp {
 #include <Iphlpapi.h>
 
 /* Want to use both Winsock 1 and 2 socket options, but since
-* IPv6 support requires Winsock 2 we have to add own backwards
+* IPver6 support requires Winsock 2 we have to add own backwards
 * compatibility for Winsock 1.
 */
 #define SETSOCKOPT winsock_versions_setsockopt
+#define CLOSE closesocket
 #else
 #define SETSOCKOPT setsockopt
+#define CLOSE close
 #endif /* WIN32 */
 
 /*****************************************************************************/
@@ -231,7 +233,7 @@ int inet_aton(const char *name, struct in_addr *addr)
 
 
 /*****************************************************************************/
-/* IPv4 specific functions...                                                */
+/* IPver4 specific functions...                                                */
 /*****************************************************************************/
 
 static int udp_addr_valid4(const char *dst)
@@ -239,7 +241,7 @@ static int udp_addr_valid4(const char *dst)
         struct in_addr addr4;
 	struct hostent *h;
 
-	if (inet_pton(AF_INET, dst, &addr4)) {
+	if (INET_PTON(AF_INET, dst, &addr4)) {
 		return TRUE;
 	} 
 
@@ -258,7 +260,7 @@ uint32_t    udp_socket_addr4(socket_udp *s)
     return 0;
   }
 
-  if (s->mode != IPv4) {
+  if (s->mode != IPver4) {
     return 0;
   }
 
@@ -292,13 +294,13 @@ static socket_udp *udp_init4(const char *addr, const char *iface, uint16_t rx_po
       int recv_buf_size = 65536;
 #endif
 	socket_udp         	*s = (socket_udp *)malloc(sizeof(socket_udp));
-	s->mode    = IPv4;
+	s->mode    = IPver4;
 	s->addr    = NULL;
 	s->rx_port = rx_port;
 	s->tx_port = tx_port;
 	s->ttl     = ttl;
 	
-	if (inet_pton(AF_INET, addr, &s->addr4) != 1) {
+	if (INET_PTON(AF_INET, addr, &s->addr4) != 1) {
 		struct hostent *h = gethostbyname(addr);
 		if (h == NULL) {
 			socket_error("Can't resolve IP address for %s", addr);
@@ -308,7 +310,7 @@ static socket_udp *udp_init4(const char *addr, const char *iface, uint16_t rx_po
 		memcpy(&(s->addr4), h->h_addr_list[0], sizeof(s->addr4));
 	}
 	if (iface != NULL) {
-		if (inet_pton(AF_INET, iface, &s->iface_addr) != 1) {
+		if (INET_PTON(AF_INET, iface, &s->iface_addr) != 1) {
 			debug_msg("Illegal interface specification\n");
                         free(s);
 			return NULL;
@@ -396,7 +398,7 @@ static void udp_exit4(socket_udp *s)
 		}
 		debug_msg("Dropped membership of multicast group\n");
 	}
-	close(s->fd);
+	CLOSE(s->fd);
         free(s->addr);
 	free(s);
 }
@@ -407,7 +409,7 @@ udp_send4(socket_udp *s, char *buffer, int buflen)
 	struct sockaddr_in	s_in;
 	
 	assert(s != NULL);
-	assert(s->mode == IPv4);
+	assert(s->mode == IPver4);
 	assert(buffer != NULL);
 	assert(buflen > 0);
 	
@@ -426,7 +428,7 @@ udp_sendv4(socket_udp *s, struct iovec *vector, int count)
 	struct sockaddr_in	s_in;
 	
 	assert(s != NULL);
-	assert(s->mode == IPv4);
+	assert(s->mode == IPver4);
 	
 	s_in.sin_family      = AF_INET;
 	s_in.sin_addr.s_addr = s->addr4.s_addr;
@@ -467,14 +469,14 @@ static const char *udp_host_addr4(void)
 }
 
 /*****************************************************************************/
-/* IPv6 specific functions...                                                */
+/* IPver6 specific functions...                                                */
 /*****************************************************************************/
 
 static int udp_addr_valid6(const char *dst)
 {
 #ifdef HAVE_IPv6
         struct in6_addr addr6;
-	switch (inet_pton(AF_INET6, dst, &addr6)) {
+	switch (INET_PTON(AF_INET6, dst, &addr6)) {
         case 1:  
                 return TRUE;
                 break;
@@ -496,7 +498,7 @@ static socket_udp *udp_init6(const char *addr, const char *iface, uint16_t rx_po
 	int                 reuse = 1;
 	struct sockaddr_in6 s_in;
 	socket_udp         *s = (socket_udp *) malloc(sizeof(socket_udp));
-	s->mode    = IPv6;
+	s->mode    = IPver6;
 	s->addr    = NULL;
 	s->rx_port = rx_port;
 	s->tx_port = tx_port;
@@ -507,10 +509,10 @@ static socket_udp *udp_init6(const char *addr, const char *iface, uint16_t rx_po
 		abort();
 	}
 
-	if (inet_pton(AF_INET6, addr, &s->addr6) != 1) {
+	if (INET_PTON(AF_INET6, addr, &s->addr6) != 1) {
 		/* We should probably try to do a DNS lookup on the name */
 		/* here, but I'm trying to get the basics going first... */
-		debug_msg("IPv6 address conversion failed\n");
+		debug_msg("IPver6 address conversion failed\n");
                 free(s);
 		return NULL;	
 	}
@@ -605,7 +607,7 @@ static void udp_exit6(socket_udp *s)
 			abort();
 		}
 	}
-	close(s->fd);
+	CLOSE(s->fd);
         free(s->addr);
 	free(s);
 #else
@@ -619,7 +621,7 @@ static int udp_send6(socket_udp *s, char *buffer, int buflen)
 	struct sockaddr_in6	s_in;
 	
 	assert(s != NULL);
-	assert(s->mode == IPv6);
+	assert(s->mode == IPver6);
 	assert(buffer != NULL);
 	assert(buflen > 0);
 	
@@ -648,7 +650,7 @@ udp_sendv6(socket_udp *s, struct iovec *vector, int count)
 	struct sockaddr_in6	s_in;
 	
 	assert(s != NULL);
-	assert(s->mode == IPv6);
+	assert(s->mode == IPver6);
 	
 	memset((char *)&s_in, 0, sizeof(s_in));
 	s_in.sin6_family = AF_INET6;
@@ -704,7 +706,7 @@ static const char *udp_host_addr6(socket_udp *s)
 		debug_msg("getsockname failed\n");
 	}
 
-	close (newsock);
+	CLOSE(newsock);
 
 	if (IN6_IS_ADDR_UNSPECIFIED(&local.sin6_addr) || IN6_IS_ADDR_MULTICAST(&local.sin6_addr)) {
 		if (gethostname(hname, MAXHOSTNAMELEN) != 0) {
@@ -750,7 +752,7 @@ static const char *udp_host_addr6(socket_udp *s)
 
 /**
  * udp_addr_valid:
- * @addr: string representation of IPv4 or IPv6 network address.
+ * @addr: string representation of IPver4 or IPver6 network address.
  *
  * Returns TRUE if @addr is valid, FALSE otherwise.
  **/
@@ -768,23 +770,66 @@ int udp_addr_valid(const char *addr)
  * with multiple network interfaces.
  */
 #ifdef WIN32
-static char *find_win32_interface(const char *addr)
+/*#include <strsafe.h>
+
+void ErrorExit(LPTSTR lpszFunction) 
+{ 
+    // Retrieve the system error message for the last-error code
+
+    LPVOID lpMsgBuf;
+    LPVOID lpDisplayBuf;
+    DWORD dw = GetLastError();
+	dw=2;
+
+    FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        dw,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPTSTR) &lpMsgBuf,
+        0, NULL );
+
+    // Display the error message and exit the process
+
+    lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT, 
+        (lstrlen((LPCTSTR)lpMsgBuf)+lstrlen((LPCTSTR)lpszFunction)+40)*sizeof(TCHAR)); 
+    StringCchPrintf((LPTSTR)lpDisplayBuf, 
+        LocalSize(lpDisplayBuf) / sizeof(TCHAR),
+        TEXT("%s failed with error %d: %s"), 
+        lpszFunction, dw, lpMsgBuf); 
+    //MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK); 
+	debug_msg(lpDisplayBuf);
+
+    LocalFree(lpMsgBuf);
+    LocalFree(lpDisplayBuf);
+    //ExitProcess(dw); 
+}
+*/
+
+char *find_win32_interface(const char *addr, int ttl)
 {
     struct in_addr inaddr;
 	char *iface = 0;
 
-    if (inet_pton(AF_INET, addr, &inaddr))
+
+    if (INET_PTON(AF_INET, addr, &inaddr))
     {
 		MIB_IPFORWARDROW route;
-			
-		debug_msg("got addr %x\n", inaddr.s_addr);
-		if (GetBestRoute(inaddr.s_addr, 0, &route) == NO_ERROR)
+		DWORD retval;
+		DWORD IfIndex;
+
+		memset(&route, 0, sizeof(route));
+
+		if ((retval=GetBestRoute((DWORD)(inaddr.s_addr), 0, &route)) == NO_ERROR)
 		{
 			IP_ADAPTER_INFO oneinfo;
 			PIP_ADAPTER_INFO allinfo = 0;
 			int len;
 			struct in_addr dst, mask, nexthop;
 
+		    debug_msg("Got BestRoute\n");
 			dst.s_addr = route.dwForwardDest;
 			mask.s_addr = route.dwForwardMask;
 			nexthop.s_addr = route.dwForwardNextHop;
@@ -832,6 +877,7 @@ static char *find_win32_interface(const char *addr)
 						}
 					}
 				}
+				free(allinfo);
 			}
 #if 0 /* This is the stuff that just works on XP, sigh. */
 			len = sizeof(addrs);
@@ -857,8 +903,296 @@ static char *find_win32_interface(const char *addr)
 				}
 			}
 #endif
+		} else {
+			debug_msg("GetBestRoute failed (%d) %d - trying GetBestInterface...\n",retval, retval );
+
+			if (0 && GetBestInterface(inaddr.s_addr, &IfIndex) == NO_ERROR)
+			{
+				IP_ADAPTER_INFO oneinfo;
+				PIP_ADAPTER_INFO allinfo = 0;
+				int len;
+//				struct in_addr dst, mask, nexthop;
+//				dst.s_addr = route.dwForwardDest;
+//				mask.s_addr = route.dwForwardMask;
+//				nexthop.s_addr = route.dwForwardNextHop;
+
+				debug_msg("GotBestInterface IfIndex=%d\n",IfIndex);
+
+				len = sizeof(oneinfo);
+				if (GetAdaptersInfo(&oneinfo, &len) == ERROR_SUCCESS)
+				{
+					debug_msg("got allinfo in one\n");
+					allinfo = &oneinfo;
+				}
+				else
+				{
+					allinfo = (PIP_ADAPTER_INFO) malloc(len);
+					if (GetAdaptersInfo(allinfo, &len) != ERROR_SUCCESS)
+					{
+						debug_msg("Could not get adapter info\n");
+						free(allinfo);
+						allinfo = 0;
+					}
+				}
+
+				if (allinfo)
+				{
+
+					PIP_ADAPTER_INFO a;
+					{
+						for (a = allinfo; a != 0; a = a->Next)
+						{
+
+							debug_msg("name='%s' desc='%s' index=%d\n", 
+								a->AdapterName, a->Description, a->Index);
+
+							if (a->Index == IfIndex)
+							{
+								PIP_ADDR_STRING s;
+								/* Take the first address. */
+
+								s = &a->IpAddressList;
+								iface = _strdup(s->IpAddress.String);
+								debug_msg("Found address '%s'\n", iface);
+							}
+						}
+					}
+				}
+			} else {
+				#define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x)) 
+#define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
+/* Note: could also use malloc() and free() */
+
+				    PMIB_IPFORWARDTABLE pIpForwardTable;
+    DWORD dwSize = 0;
+    DWORD dwRetVal = 0;
+
+    char szDestIp[128];
+    char szMaskIp[128];
+    char szGatewayIp[128];
+
+    struct in_addr IpAddr;
+
+    int i;
+        debug_msg("GetIpForwardTable\n");
+
+
+    pIpForwardTable = (MIB_IPFORWARDTABLE*) MALLOC(sizeof(MIB_IPFORWARDTABLE));
+    if (pIpForwardTable == NULL) {
+        debug_msg("GetIpForwardTable Error allocating memory\n");
+	    //ErrorExit(TEXT("Error allocating memory for GetIpForwardTable\n"));
+    }
+
+    if (GetIpForwardTable(pIpForwardTable, &dwSize, 0) == ERROR_INSUFFICIENT_BUFFER) {
+        FREE(pIpForwardTable);
+        pIpForwardTable = (MIB_IPFORWARDTABLE*) MALLOC(dwSize);
+        if (pIpForwardTable == NULL) {
+            debug_msg("GetIpForwardTable Error allocating more memory\n");
+			//ErrorExit(TEXT("Error allocating memory for Larger GetIpForwardTable\n"));
+		    exit(1);
 		}
     }
+
+    /* Note that the IPv4 addresses returned in 
+     * GetIpForwardTable entries are in network byte order 
+     */
+    if ( (dwRetVal = GetIpForwardTable(pIpForwardTable, &dwSize, 0)) == NO_ERROR) {
+        printf("\tNumber of entries: %d\n", (int) pIpForwardTable->dwNumEntries);
+        for (i = 0; i < (int) pIpForwardTable->dwNumEntries; i++) {
+            /* Convert IPv4 addresses to strings */
+
+            IpAddr.S_un.S_addr = (u_long) pIpForwardTable->table[i].dwForwardDest;
+            strcpy_s(szDestIp, sizeof(szDestIp), inet_ntoa(IpAddr) );
+            IpAddr.S_un.S_addr =  (u_long) pIpForwardTable->table[i].dwForwardMask;
+            strcpy_s(szMaskIp, sizeof(szMaskIp), inet_ntoa(IpAddr) );
+            IpAddr.S_un.S_addr = (u_long) pIpForwardTable->table[i].dwForwardNextHop;
+            strcpy_s(szGatewayIp, sizeof(szGatewayIp), inet_ntoa(IpAddr) );
+
+            debug_msg("\n\tRoute[%d] Dest IP: %s\n", i, szDestIp);
+            debug_msg("\tRoute[%d] Subnet Mask: %s\n", i, szMaskIp);
+            debug_msg("\tRoute[%d] Next Hop: %s\n", i, szGatewayIp);
+            debug_msg("\tRoute[%d] If Index: %ld\n", i, pIpForwardTable->table[i].dwForwardIfIndex);
+            debug_msg("\tRoute[%d] Type: %ld - ", i, pIpForwardTable->table[i].dwForwardType);
+            switch (pIpForwardTable->table[i].dwForwardType) {
+                /*case MIB_IPROUTE_TYPE_OTHER:
+                    debug_msg("other\n");
+                    break;
+                case MIB_IPROUTE_TYPE_INVALID:
+                    debug_msg("invalid route\n");
+                    break;
+                case MIB_IPROUTE_TYPE_DIRECT:
+                    debug_msg("local route where next hop is final destination\n");
+                    break;
+                case MIB_IPROUTE_TYPE_INDIRECT:
+                    debug_msg("remote route where next hop is not final destination\n");
+                    break;*/
+                default:               
+                    debug_msg("UNKNOWN Type value\n");
+                    break;
+            } 
+            debug_msg("\tRoute[%d] Proto: %ld - ", i, pIpForwardTable->table[i].dwForwardProto);
+            switch (pIpForwardTable->table[i].dwForwardProto) {
+                /*case MIB_IPPROTO_OTHER:
+                    debug_msg("other\n");
+                    break;
+                case MIB_IPPROTO_LOCAL:
+                    debug_msg("local interface\n");
+                    break;
+                case MIB_IPPROTO_NETMGMT:
+                    debug_msg("static route set through network management \n");
+                    break;
+                case MIB_IPPROTO_ICMP:
+                    debug_msg("result of ICMP redirect\n");
+                    break;
+                case MIB_IPPROTO_EGP:
+                    debug_msg("Exterior Gateway Protocol (EGP)\n");
+                    break;
+                case MIB_IPPROTO_GGP:
+                    debug_msg("Gateway-to-Gateway Protocol (GGP)\n");
+                    break;
+                case MIB_IPPROTO_HELLO:
+                    debug_msg("Hello protocol\n");
+                    break;
+                case MIB_IPPROTO_RIP:
+                    debug_msg("Routing Information Protocol (RIP)\n");
+                    break;
+                case MIB_IPPROTO_IS_IS:
+                    debug_msg("Intermediate System-to-Intermediate System (IS-IS) protocol\n");
+                    break;
+                case MIB_IPPROTO_ES_IS:
+                    debug_msg("End System-to-Intermediate System (ES-IS) protocol\n");
+                    break;
+                case MIB_IPPROTO_CISCO:
+                    debug_msg("Cisco Interior Gateway Routing Protocol (IGRP)\n");
+                    break;
+                case MIB_IPPROTO_BBN:
+                    debug_msg("BBN Internet Gateway Protocol (IGP) using SPF\n");
+                    break;
+                case MIB_IPPROTO_OSPF:
+                    debug_msg("Open Shortest Path First (OSPF) protocol\n");
+                    break;
+                case MIB_IPPROTO_BGP:
+                    debug_msg("Border Gateway Protocol (BGP)\n");
+                    break;
+                case MIB_IPPROTO_NT_AUTOSTATIC:
+                    debug_msg("special Windows auto static route\n");
+                    break;
+                case MIB_IPPROTO_NT_STATIC:
+                    debug_msg("special Windows static route\n");
+                    break;
+                case MIB_IPPROTO_NT_STATIC_NON_DOD:
+                    debug_msg("special Windows static route not based on Internet standards\n");
+                    break;*/
+                default:               
+                    debug_msg("UNKNOWN Proto value\n");
+                    break;
+            } 
+
+            debug_msg("\tRoute[%d] Age: %ld\n", i, pIpForwardTable->table[i].dwForwardAge);
+            debug_msg("\tRoute[%d] Metric1: %ld\n", i, pIpForwardTable->table[i].dwForwardMetric1);
+			if ((inaddr.s_addr&pIpForwardTable->table[i].dwForwardMask) == pIpForwardTable->table[i].dwForwardDest) {
+			//if ((inaddr.S_un.S_un_b.s_b1&IpAddr.S_un.S_un_b.s_b1) == IpAddr.S_un.S_un_b.s_b1)
+				debug_msg("Match!:%d\n",ttl);
+				if (pIpForwardTable->table[i].dwForwardNextHop==inet_addr("127.0.0.1") ) {
+					/*if (!ttl) {
+					    IfIndex=pIpForwardTable->table[i].dwForwardIfIndex;
+						debug_msg("TTL=0 - Use loopback address: %d\n",IfIndex);
+					    break;
+					}*/
+				} else {
+					if (pIpForwardTable->table[i].dwForwardDest==inet_addr("0.0.0.0")) {
+					   IfIndex=pIpForwardTable->table[i].dwForwardIfIndex;
+					   debug_msg("Default Route - setting in case there's nothing else: %d\n", IfIndex);
+					} else {
+					   IfIndex=pIpForwardTable->table[i].dwForwardIfIndex;
+					   debug_msg("Found better match - Using it: %d\n",IfIndex);
+					   break;
+					}
+				}
+			}
+       }
+	   FREE(pIpForwardTable);
+	   {
+	   			IP_ADAPTER_INFO oneinfo;
+				PIP_ADAPTER_INFO allinfo = 0;
+				int len;
+//				struct in_addr dst, mask, nexthop;
+//				dst.s_addr = route.dwForwardDest;
+//				mask.s_addr = route.dwForwardMask;
+//				nexthop.s_addr = route.dwForwardNextHop;
+
+				debug_msg("GotBestInterface IfIndex=%d\n",IfIndex);
+
+				len = sizeof(oneinfo);
+				if (GetAdaptersInfo(&oneinfo, &len) == ERROR_SUCCESS)
+				{
+					debug_msg("got allinfo in one\n");
+					allinfo = &oneinfo;
+				}
+				else
+				{
+					allinfo = (PIP_ADAPTER_INFO) malloc(len);
+					if (GetAdaptersInfo(allinfo, &len) != ERROR_SUCCESS)
+					{
+						debug_msg("Could not get adapter info\n");
+						free(allinfo);
+						allinfo = 0;
+					}
+				}
+
+				if (allinfo)
+				{
+
+					PIP_ADAPTER_INFO a;
+					{
+						for (a = allinfo; a != 0; a = a->Next)
+						{
+
+							debug_msg("name='%s' desc='%s' index=%d\n", 
+								a->AdapterName, a->Description, a->Index);
+
+							if (a->Index == IfIndex)
+							{
+								PIP_ADDR_STRING s;
+								/* Take the first address. */
+
+								s = &a->IpAddressList;
+								iface = _strdup(s->IpAddress.String);
+								debug_msg("Found address '%s'\n", iface);
+							}
+						}
+					}
+				}
+				if (!iface && IfIndex==1) 
+					iface=_strdup("127.0.0.1");
+	   }
+//       return 0;
+    }
+    else {
+       debug_msg("\tGetIpForwardTable failed.\n");
+       FREE(pIpForwardTable);
+//       return 1;
+    }
+
+
+/*				struct sockaddr_in DestAddr;
+				DWORD dwBestIfIndex;
+
+				debug_msg("GetBestInterface failed\n");
+				DestAddr.sin_family = AF_INET;
+				DestAddr.sin_addr.s_addr = inaddr.s_addr;
+				DestAddr.sin_port = 0;
+				GetBestInterfaceEx((struct sockaddr*)(&DestAddr), &dwBestIfIndex);
+				debug_msg("GetBestInterfaceEx %d\n",dwBestIfIndex);
+*/
+
+			}
+		}
+	} else {
+	    debug_msg("Cannot convert address\n");
+	}
+
+	if (iface==0) debug_msg("Did not find suitable interface\n");
 
 	return iface;
 }
@@ -866,7 +1200,7 @@ static char *find_win32_interface(const char *addr)
 
 /**
  * udp_init:
- * @addr: character string containing an IPv4 or IPv6 network address.
+ * @addr: character string containing an IPver4 or IPver6 network address.
  * @rx_port: receive port.
  * @tx_port: transmit port.
  * @ttl: time-to-live value for transmitted packets.
@@ -883,7 +1217,7 @@ socket_udp *udp_init(const char *addr, uint16_t rx_port, uint16_t tx_port, int t
 
 /**
  * udp_init_if:
- * @addr: character string containing an IPv4 or IPv6 network address.
+ * @addr: character string containing an IPver4 or IPver6 network address.
  * @iface: character string containing an interface name.
  * @rx_port: receive port.
  * @tx_port: transmit port.
@@ -910,7 +1244,7 @@ socket_udp *udp_init_if(const char *addr, const char *iface, uint16_t rx_port, u
 #ifdef WIN32
 		if (iface == 0)
 		{
-			computed_iface = find_win32_interface(addr);
+			computed_iface = find_win32_interface(addr, ttl);
 			iface = computed_iface;
 		}
 #endif
@@ -936,8 +1270,8 @@ socket_udp *udp_init_if(const char *addr, const char *iface, uint16_t rx_port, u
 void udp_exit(socket_udp *s)
 {
     switch(s->mode) {
-    case IPv4 : udp_exit4(s); break;
-    case IPv6 : udp_exit6(s); break;
+    case IPver4 : udp_exit4(s); break;
+    case IPver6 : udp_exit6(s); break;
     default   : abort();
     }
 }
@@ -955,8 +1289,8 @@ void udp_exit(socket_udp *s)
 int udp_send(socket_udp *s, char *buffer, int buflen)
 {
 	switch (s->mode) {
-	case IPv4 : return udp_send4(s, buffer, buflen);
-	case IPv6 : return udp_send6(s, buffer, buflen);
+	case IPver4 : return udp_send4(s, buffer, buflen);
+	case IPver6 : return udp_send6(s, buffer, buflen);
 	default   : abort(); /* Yuk! */
 	}
 	return -1;
@@ -968,8 +1302,8 @@ int
 udp_sendv(socket_udp *s, struct iovec *vector, int count)
 {
 	switch (s->mode) {
-	case IPv4 : return udp_sendv4(s, vector, count);
-	case IPv6 : return udp_sendv6(s, vector, count);
+	case IPver4 : return udp_sendv4(s, vector, count);
+	case IPver6 : return udp_sendv6(s, vector, count);
 	default   : abort(); /* Yuk! */
 	}
 	return -1;
@@ -1074,8 +1408,8 @@ int udp_select( fd_set *readset, fd_t max_fd, struct timeval *timeout)
 const char *udp_host_addr(socket_udp *s)
 {
 	switch (s->mode) {
-	case IPv4 : return udp_host_addr4();
-	case IPv6 : return udp_host_addr6(s);
+	case IPver4 : return udp_host_addr4();
+	case IPver6 : return udp_host_addr6(s);
 	default   : abort();
 	}
 	return NULL;
