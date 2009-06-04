@@ -493,7 +493,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\tcl-8.0\generic,..\tk-8.0\generic,..\tk-8.0\xlib,c:\program files\microsoft sdk\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;DEBUG;DEBUG_MEM;NEED_INET_PTON;HAVE_INET_NTOP"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;DEBUG;DEBUG_MEM;NEED_INET_PTON;HAVE_INET_NTOP"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="1"
 				EnableEnhancedInstructionSet="0"
