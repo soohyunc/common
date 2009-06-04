@@ -768,7 +768,7 @@ explore_numeric(pai, hostname, servname, res)
 	afd = find_afd(pai->ai_family);
 	flags = pai->ai_flags;
 
-	if (inet_pton(afd->a_af, hostname, pton) == 1) {
+	if (INET_PTON(afd->a_af, hostname, pton) == 1) {
 		uint32_t v4a;
 #ifdef INET6
 		u_char pfx;

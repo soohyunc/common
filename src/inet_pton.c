@@ -49,7 +49,7 @@ static int	inet_pton6(const char *src, u_char *dst);
  *	Paul Vixie, 1996.
  */
 int
-inet_pton(af, src, dst)
+inet_pton_ucl(af, src, dst)
 	int af;
 	const char *src;
 	void *dst;

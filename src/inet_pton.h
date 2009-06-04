@@ -1,9 +1,12 @@
-#ifdef NEED_INET_PTON
+#ifndef NEED_INET_PTON
+#define INET_PTON inet_pton
+#else
+#define INET_PTON inet_pton_ucl
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-int inet_pton(int af, const char *src, void *dst);
+int inet_pton_ucl(int af, const char *src, void *dst);
 
 #if defined(__cplusplus)
 }

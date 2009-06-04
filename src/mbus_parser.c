@@ -29,12 +29,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+//#define _CRT_ERRNO_DEFINED
 
 #include "config_unix.h"
 #include "config_win32.h"
 #include "debug.h"
 #include "memory.h"
 #include "mbus_parser.h"
+#include <stddef.h>
 
 #define MBUS_PARSER_MAGIC 0xbadface
 
@@ -237,10 +239,13 @@ int mbus_parse_flt(struct mbus_parser *m, double *d)
 
 	assert(m->magic == MBUS_PARSER_MAGIC);
 
-        while (isspace((unsigned char)*m->buffer)) {
-                m->buffer++;
+    while (isspace((unsigned char)*m->buffer)) {
+        m->buffer++;
 		CHECK_OVERRUN;
-        }
+    }
+	/* Have to set errno to zero before checking for it as strtol/etc doesn't change it if 
+	it is already set */
+	errno = 0;
 
 	*d = strtod(m->buffer, &p);
 	if (errno == ERANGE) {
