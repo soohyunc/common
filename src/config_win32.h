@@ -89,6 +89,10 @@ typedef unsigned int	fd_t;
  * the definitions below are valid for 32-bit architectures and will have to
  * be adjusted for 16- or 64-bit architectures
  */
+
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#else
 typedef unsigned __int8		uint8_t;
 typedef unsigned __int16	uint16_t;
 typedef unsigned __int32	uint32_t;
@@ -97,6 +101,9 @@ typedef __int8		int8_t;
 typedef __int16		int16_t;
 typedef __int32		int32_t;
 typedef __int64		int64_t;
+typedef int			ssize_t;
+#endif
+
 typedef unsigned long	in_addr_t;
 
 #ifndef TRUE
@@ -137,7 +144,6 @@ typedef unsigned long	in_addr_t;
 #define IN_MULTICAST(i)	IN_CLASSD(i)
 
 typedef char	*caddr_t;
-typedef int	ssize_t;
 
 typedef struct iovec {
 	caddr_t	iov_base;
@@ -196,7 +202,10 @@ const char * w32_make_version_info(char * rat_verion);
 #define strcasecmp  _stricmp
 #define strncasecmp _strnicmp
 
+#ifndef RegGetValue
 int  RegGetValue(HKEY *, char *, char*, char*, int);
+#endif
+
 void ShowMessage(int level, char *msg);
 
 #define bcopy(from,to,len) memcpy(to,from,len)
