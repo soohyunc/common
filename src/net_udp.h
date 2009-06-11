@@ -57,10 +57,10 @@ int         udp_socket_ttl(socket_udp *s);
 const char *udp_host_addr(socket_udp *s);
 int         udp_fd(socket_udp *s);
 
-int         udp_select( fd_set *readset, fd_t max_fd, struct timeval *timeout);
-void        udp_fd_zero( fd_set *readset, fd_t *max_fd );
-void        udp_fd_set( fd_set *readset, fd_t *max_fd, socket_udp *s);
-int         udp_fd_isset( fd_set *readset, fd_t *max_fd, socket_udp *s);
+int         udp_select( fd_set *readset, int max_fd, struct timeval *timeout);
+void        udp_fd_zero( fd_set *readset, int *max_fd );
+void        udp_fd_set( fd_set *readset, int *max_fd, socket_udp *s);
+int         udp_fd_isset( fd_set *readset, int *max_fd, socket_udp *s);
 
 #if defined(__cplusplus)
 }

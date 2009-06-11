@@ -1349,7 +1349,7 @@ int udp_recv(socket_udp *s, char *buffer, int buflen)
  * Clears file descriptor from set associated with UDP sessions (see select(2)).
  * 
  **/
-void udp_fd_zero( fd_set *readset, fd_t *max_fd )
+void udp_fd_zero( fd_set *readset, int *max_fd )
 {
 	FD_ZERO(readset);
 	*max_fd = 0;
@@ -1361,7 +1361,7 @@ void udp_fd_zero( fd_set *readset, fd_t *max_fd )
  * 
  * Adds file descriptor associated of @s to set associated with UDP sessions.
  **/
-void udp_fd_set( fd_set *readset, fd_t *max_fd, socket_udp *s)
+void udp_fd_set( fd_set *readset, int *max_fd, socket_udp *s)
 {
 	FD_SET(s->fd, readset);
 	if (s->fd > (fd_t)*max_fd) {
@@ -1378,7 +1378,7 @@ void udp_fd_set( fd_set *readset, fd_t *max_fd, socket_udp *s)
  *
  * Returns: non-zero if set, zero otherwise.
  **/
-int udp_fd_isset( fd_set *readset, fd_t *max_fd, socket_udp *s)
+int udp_fd_isset( fd_set *readset, int *max_fd, socket_udp *s)
 {
 	UNUSED(max_fd);
 
@@ -1393,9 +1393,9 @@ int udp_fd_isset( fd_set *readset, fd_t *max_fd, socket_udp *s)
  * 
  * Return value: number of UDP sessions ready for reading.
  **/
-int udp_select( fd_set *readset, fd_t max_fd, struct timeval *timeout)
+int udp_select( fd_set *readset, int max_fd, struct timeval *timeout)
 {
-	return select(max_fd + 1, readset, NULL, NULL, timeout);
+	return select((fd_t)max_fd + 1, readset, NULL, NULL, timeout);
 }
 
 /**
