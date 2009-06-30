@@ -839,12 +839,16 @@ char *find_win32_interface(const char *addr, int ttl)
 				route.dwForwardIfIndex);
 
 			len = sizeof(oneinfo);
+			// Make initial call - which can return an error if there's not enough
+			// space and will set len to required size
 			if (GetAdaptersInfo(&oneinfo, &len) == ERROR_SUCCESS)
 			{
 				debug_msg("got allinfo in one\n");
 				allinfo = &oneinfo;
 			}
 			else
+			// Call again with appropriately (larger) sized buffer
+			// (Assuming the first call returns ERROR_BUFFER_OVERFLOW)
 			{
 				allinfo = (PIP_ADAPTER_INFO) malloc(len);
 				if (GetAdaptersInfo(allinfo, &len) != ERROR_SUCCESS)
@@ -877,7 +881,8 @@ char *find_win32_interface(const char *addr, int ttl)
 						}
 					}
 				}
-				free(allinfo);
+				if (allinfo != &oneinfo)
+					free(allinfo);
 			}
 #if 0 /* This is the stuff that just works on XP, sigh. */
 			len = sizeof(addrs);
@@ -957,6 +962,8 @@ char *find_win32_interface(const char *addr, int ttl)
 							}
 						}
 					}
+					if (allinfo != &oneinfo)
+						free(allinfo);
 				}
 			} else {
 				#define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x)) 
