@@ -51,25 +51,27 @@
 #include <sys/stat.h>
 
 #ifdef HAVE_IPv6
+
 #ifdef MUSICA_IPV6
 #include <winsock6.h>
-#else
-#ifdef WINXP_IPV6
+
+#elif _WIN32_WINNT >= _WIN32_WINNT_WINXP
 #include <ws2tcpip.h>
-#else
-#ifdef WIN2K_IPV6
+
+#elif _WIN32_WINNT >= WIN2K && _WIN32_WINNT < _WIN32_WINNT_WINXP
 #include <ws2tcpip.h>
 #include <tpipv6.h>
+
 #else
 #include <ws2ip6.h>
 #include <ws2tcpip.h>
 #endif
-#endif
-#endif
-#endif
 
+#else /* IPv4 */
 #ifndef MUSICA_IPV6
 #include <ws2tcpip.h>
+#endif
+
 #endif
 
 #include <mmreg.h>
@@ -201,10 +203,6 @@ const char * w32_make_version_info(char * rat_verion);
 
 #define strcasecmp  _stricmp
 #define strncasecmp _strnicmp
-
-#ifndef RegGetValue
-int  RegGetValue(HKEY *, char *, char*, char*, int);
-#endif
 
 void ShowMessage(int level, char *msg);
 

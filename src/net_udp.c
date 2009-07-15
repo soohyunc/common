@@ -52,7 +52,7 @@
 #define IPver4	4
 #define IPver6	6
 
-#ifdef WIN2K_IPV6
+#if _WIN32_WINNT == _WIN32_WINNT_WIN2K && defined(HAVE_IPv6)
 const struct	in6_addr	in6addr_any = {IN6ADDR_ANY_INIT};
 #endif
 
@@ -728,14 +728,14 @@ static const char *udp_host_addr6(socket_udp *s)
 			abort();
 		}
 		
-		if (inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)(ai->ai_addr))->sin6_addr), hname, MAXHOSTNAMELEN) == NULL) {
+		if (INET_NTOP(AF_INET6, &(((struct sockaddr_in6 *)(ai->ai_addr))->sin6_addr), hname, MAXHOSTNAMELEN) == NULL) {
 			debug_msg("inet_ntop: %s: \n", hname);
 			abort();
 		}
 		freeaddrinfo(ai);
 		return (const char*)hname;
 	}
-	if (inet_ntop(AF_INET6, &local.sin6_addr, hname, MAXHOSTNAMELEN) == NULL) {
+	if (INET_NTOP(AF_INET6, &local.sin6_addr, hname, MAXHOSTNAMELEN) == NULL) {
 		debug_msg("inet_ntop: %s: \n", hname);
 		abort();
 	}
