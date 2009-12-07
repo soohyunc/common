@@ -6,6 +6,7 @@ AC_INIT(src/base64.c)
 
 LT_INIT
 
+AC_CANONICAL_SYSTEM
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
@@ -381,6 +382,19 @@ then
         CFLAGS="$CFLAGS -W -Wall -Wwrite-strings -Wbad-function-cast -Wmissing-prototypes -Wcast-qual -Wmissing-declarations"
 fi
 
+case "$target" in
+*darwin*)
+dnl Check for 64-bit host gcc - in Snow Leopard+
+AC_MSG_CHECKING([for 64-bit gcc on OSX])
+        if gcc -v 2>&1 | grep host=x86_64 >& /dev/null ; then
+              AC_MSG_RESULT([Building universal library - 64 and 32 bit])
+              CFLAGS="$CFLAGS -arch i386 -arch x86_64"
+              LDFLAGS="$LDFLAGS -arch i386 -arch x86_64 -mmacosx-version-min=10.4"
+        else
+              AC_MSG_RESULT([No - Only building 32-bit library])
+        fi
+	;;
+esac
 ###############################################################################
 # Done, create the output files....
 AC_CONFIG_HEADER(src/uclconf.h:src/config.h.in)
