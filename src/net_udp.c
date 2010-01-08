@@ -460,7 +460,7 @@ static const char *udp_host_addr4(void)
 	}
 	hent = gethostbyname(hname);
 	if (hent == NULL) {
-		debug_msg("Failed to lookup current hostname: %s\n", addr);
+		debug_msg("Failed to lookup current hostname: %s\n", hname);
 		socket_error("Can't resolve IP address for %s", hname);
 		return NULL;
 	}

@@ -1052,9 +1052,9 @@ struct rtp *rtp_init_if(const char *addr, char *iface,
 	session->rx_port	= rx_port;
 	session->tx_port	= tx_port;
 	session->ttl		= min(ttl, 255);
-	if (!session->rtp_socket= udp_init_if(addr, iface, rx_port, tx_port, ttl))
+	if (!(session->rtp_socket= udp_init_if(addr, iface, rx_port, tx_port, ttl)))
 	  return NULL;
-	if(!session->rtcp_socket= udp_init_if(addr, iface, (uint16_t) (rx_port+1), (uint16_t) (tx_port+1), ttl))
+	if(!(session->rtcp_socket= udp_init_if(addr, iface, (uint16_t) (rx_port+1), (uint16_t) (tx_port+1), ttl)))
 	  return NULL;
 
 	init_opt(session);
