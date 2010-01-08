@@ -303,6 +303,7 @@ static socket_udp *udp_init4(const char *addr, const char *iface, uint16_t rx_po
 	if (INET_PTON(AF_INET, addr, &s->addr4) != 1) {
 		struct hostent *h = gethostbyname(addr);
 		if (h == NULL) {
+			debug_msg("Failed to lookup address (%s) for udp initialisation\n", addr);
 			socket_error("Can't resolve IP address for %s", addr);
                         free(s);
 			return NULL;
@@ -459,6 +460,7 @@ static const char *udp_host_addr4(void)
 	}
 	hent = gethostbyname(hname);
 	if (hent == NULL) {
+		debug_msg("Failed to lookup current hostname: %s\n", addr);
 		socket_error("Can't resolve IP address for %s", hname);
 		return NULL;
 	}
