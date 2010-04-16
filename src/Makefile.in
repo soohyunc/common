@@ -17,12 +17,13 @@ RANLIB = @RANLIB@
 LIBTOOL= @LIBTOOL@
 INSTALL= @INSTALL@
 SHELL  = @SHELL@
+EXTRAOBJS= @EXTRAOBJS@
 
 LT_OBJS = asarray.lo base64.lo btree.lo crypt_random.lo debug.lo \
           drand48.lo hmac.lo mbus_addr.lo mbus_config.lo mbus.lo \
           mbus_parser.lo md5.lo memory.lo net_udp.lo ntp.lo \
           qfDES.lo rijndael-alg-fst.lo rijndael-api-fst.lo rtp.lo \
-          sap.lo sdp.lo util.lo
+          sap.lo sdp.lo util.lo $(EXTRAOBJS)
 
 all: version.h libuclmmbase.la
 

@@ -182,7 +182,7 @@ abort_unicast:
 	randomize(buf1, BUFSIZE);
 	randomize(buf2, BUFSIZE);
 	if (udp_send(s1, buf1, BUFSIZE) < 0) {
-		perror("fail");
+		printf("fail: cannot send\n");
 		goto abort_multicast;
 	}
 	timeout.tv_sec  = 1;
@@ -191,7 +191,7 @@ abort_unicast:
 	udp_fd_set( &rfd, &max_fd, s1 );
 	rc = udp_select(&rfd, max_fd, &timeout);
 	if (rc < 0) {
-		perror("fail");
+		printf("fail: cannot select\n");
 		goto abort_multicast;
 	}
 	if (rc == 0) {
@@ -203,7 +203,7 @@ abort_unicast:
 		goto abort_multicast;
 	}
 	if (udp_recv(s1, buf2, BUFSIZE) < 0) {
-		perror("fail");
+		printf("fail: cannot receive\n");
 		goto abort_multicast;
 	}
 	if (memcmp(buf1, buf2, BUFSIZE) != 0) {

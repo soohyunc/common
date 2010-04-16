@@ -113,7 +113,8 @@ struct _socket_udp {
 * IPver6 support requires Winsock 2 we have to add own backwards
 * compatibility for Winsock 1.
 */
-#define SETSOCKOPT winsock_versions_setsockopt
+//#define SETSOCKOPT winsock_versions_setsockopt
+#define SETSOCKOPT setsockopt
 #define CLOSE closesocket
 #else
 #define SETSOCKOPT setsockopt
@@ -1011,11 +1012,11 @@ char *find_win32_interface(const char *addr, int ttl)
             /* Convert IPv4 addresses to strings */
 
             IpAddr.S_un.S_addr = (u_long) pIpForwardTable->table[i].dwForwardDest;
-            strcpy_s(szDestIp, sizeof(szDestIp), inet_ntoa(IpAddr) );
+            strncpy(szDestIp, sizeof(szDestIp), inet_ntoa(IpAddr) );
             IpAddr.S_un.S_addr =  (u_long) pIpForwardTable->table[i].dwForwardMask;
-            strcpy_s(szMaskIp, sizeof(szMaskIp), inet_ntoa(IpAddr) );
+            strncpy(szMaskIp, sizeof(szMaskIp), inet_ntoa(IpAddr) );
             IpAddr.S_un.S_addr = (u_long) pIpForwardTable->table[i].dwForwardNextHop;
-            strcpy_s(szGatewayIp, sizeof(szGatewayIp), inet_ntoa(IpAddr) );
+            strncpy(szGatewayIp, sizeof(szGatewayIp), inet_ntoa(IpAddr) );
 
             debug_msg("\n\tRoute[%d] Dest IP: %s\n", i, szDestIp);
             debug_msg("\tRoute[%d] Subnet Mask: %s\n", i, szMaskIp);

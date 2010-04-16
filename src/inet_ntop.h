@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-const char *inet_ntop_ucl(int af, const void *src, char *dst, size_t size);
+const char *inet_ntop_ucl(int af, const void *src, char *dst, socklen_t size);
 
 #if defined(__cplusplus)
 }

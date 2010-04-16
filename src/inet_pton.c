@@ -16,9 +16,10 @@
  * SOFTWARE.
  */
 
-#ifdef NEED_INET_PTON
 #include "config_unix.h"
 #include "config_win32.h"
+
+#ifdef NEED_INET_PTON
 #include "inet_pton.h"
 
 #define	IN6ADDRSZ	16

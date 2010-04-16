@@ -3,10 +3,10 @@
 AC_PREREQ(2.5)
 
 AC_INIT(src/base64.c)
+AM_INIT_AUTOMAKE
 
 LT_INIT
 
-AC_CANONICAL_SYSTEM
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
@@ -105,25 +105,26 @@ AC_REPLACE_FUNCS(vsnprintf)
 # declared anywhere, use egrep header to check (ugh lame, but works)
 
 AC_CACHE_CHECK(for inet_pton in <arpa/inet.h>, ucl_cv_inet_pton_in_inet_h,
-	AC_EGREP_HEADER(uint16_t,
-			stdint.h,
+	AC_EGREP_HEADER(inet_pton,
+			arpa/inet.h,
 			ucl_cv_inet_pton_in_inet_h=yes,
 			ucl_cv_inet_pton_in_inet_h=no))
 if test $ucl_cv_inet_pton_in_inet_h = "no"
 then
 	AC_DEFINE(NEED_INET_PTON)
-	AC_LIBOBJ([inet_pton])
+	EXTRAOBJS="$EXTRAOBJS inet_pton.lo"
 fi
 AC_CACHE_CHECK(for inet_ntop in <arpa/inet.h>, ucl_cv_inet_ntop_in_inet_h,
-	AC_EGREP_HEADER(uint16_t,
-			stdint.h,
+	AC_EGREP_HEADER(inet_ntop,
+			arpa/inet.h,
 			ucl_cv_inet_ntop_in_inet_h=yes,
 			ucl_cv_inet_ntop_in_inet_h=no))
 if test $ucl_cv_inet_ntop_in_inet_h = "no"
 then
 	AC_DEFINE(NEED_INET_NTOP)
-	AC_LIBOBJ([inet_ntop])
+	EXTRAOBJS="$EXTRAOBJS inet_ntop.lo"
 fi
+AC_SUBST(EXTRAOBJS)
 #AC_SUBST(LIBOBJS)
 
 # AC_REPLACE_FUNCS(inet_pton inet_ntop)
@@ -382,20 +383,40 @@ then
         CFLAGS="$CFLAGS -W -Wall -Wwrite-strings -Wbad-function-cast -Wmissing-prototypes -Wcast-qual -Wmissing-declarations"
 fi
 
-case "$target" in
-*darwin*)
-dnl Check for 64-bit host gcc - in Snow Leopard+
-AC_MSG_CHECKING([for 64-bit gcc on OSX])
-        if gcc -v 2>&1 | grep host=x86_64 >& /dev/null ; then
-              AC_MSG_RESULT([Building universal library - 64 and 32 bit])
-              CFLAGS="$CFLAGS -arch i386 -arch x86_64"
-              LDFLAGS="$LDFLAGS -arch i386 -arch x86_64 -mmacosx-version-min=10.4"
-        else
-              AC_MSG_RESULT([No - Only building 32-bit library])
-        fi
-	;;
+case "$host_os" in 
+  mingw|mingw32)
+	AC_MSG_CHECKING(for winsock)
+	save_LIBS="$LIBS"
+	for curlib in ws2_32 wsock32; do
+		LIBS="$LIBS -l$curlib"
+		AC_TRY_LINK([
+			char __attribute__((stdcall)) socket(int,int,int);
+				char __attribute__((stdcall)) select(int,int,int,int,int);
+				char __attribute__((stdcall)) closesocket(int);
+				char __attribute__((stdcall)) gethostname(int,int);
+				],
+				[
+				socket(1,2,3);
+				select(1,2,3,4,5);
+				closesocket(1);
+				gethostname(1,2);
+				],
+				have_winsock=yes, have_winsock=no)
+
+		if test $have_winsock = yes; then
+			ac_cv_func_select='yes'
+			if test $curlib = ws2_32; then
+				have_winsock=winsock2
+			fi
+			break
+		fi
+		LIBS="$save_LIBS"
+	done
+	AC_MSG_RESULT($have_winsock)
+	LIBS="$LIBS -liphlpapi"
 esac
+
 ###############################################################################
 # Done, create the output files....
-AC_CONFIG_HEADER(src/uclconf.h:src/config.h.in)
+AC_CONFIG_HEADER(uclconf.h:src/config.h.in)
 AC_OUTPUT(Makefile doc/Makefile examples/Makefile examples/rtp/Makefile examples/sdp/Makefile examples/sap/Makefile src/Makefile tests/Makefile)

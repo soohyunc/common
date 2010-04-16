@@ -38,6 +38,8 @@
 #ifndef _CONFIG_WIN32_H
 #define _CONFIG_WIN32_H
 
+#include "uclconf.h"
+
 #include <limits.h>
 #include <malloc.h>
 #include <stdio.h>
@@ -174,10 +176,10 @@ struct utsname {
 	char machine[_SYS_NMLN];
 };
 
-struct timezone {
+/*struct timezone {
 	int tz_minuteswest;
 	int tz_dsttime;
-};
+}; */
 
 typedef int pid_t;
 typedef int uid_t;

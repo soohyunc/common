@@ -11,7 +11,7 @@ LNAME  = uclmmbase
 
 DEFS   = @DEFS@
 CFLAGS = @CFLAGS@ $(DEFS) -I$(CSRC)
-LIBS   = @LIBS@ -L$(CSRC) -l$(LNAME)
+LIBS   = -L$(CSRC) -l$(LNAME) @LIBS@ 
 CC     = @CC@
 
 TARGET = sapdemo

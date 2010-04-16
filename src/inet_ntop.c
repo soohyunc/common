@@ -16,9 +16,10 @@
  * SOFTWARE.
  */
 
-#ifdef NEED_INET_NTOP
 #include "config_unix.h"
 #include "config_win32.h"
+
+#ifdef NEED_INET_NTOP
 #include "inet_ntop.h"
 
 #define	IN6ADDRSZ	16
