@@ -38,7 +38,9 @@
 #ifndef _CONFIG_UNIX_H
 #define _CONFIG_UNIX_H
 
+#ifdef HAVE_CONFIG_H
 #include "uclconf.h"
+#endif
 
 #include <limits.h>
 #include <sys/types.h>

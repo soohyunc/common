@@ -38,7 +38,9 @@
 #ifndef _CONFIG_WIN32_H
 #define _CONFIG_WIN32_H
 
+#ifdef HAVE_CONFIG_H
 #include "uclconf.h"
+#endif
 
 #include <limits.h>
 #include <malloc.h>
