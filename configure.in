@@ -384,6 +384,17 @@ then
 fi
 
 case "$host_os" in 
+  *darwin*)
+	dnl Check for 64-bit host gcc - in Snow Leopard+
+	AC_MSG_CHECKING([for 64-bit gcc on OSX])
+	if gcc -v 2>&1 | grep host=x86_64 >& /dev/null ; then
+		AC_MSG_RESULT([Building universal library - 64 and 32 bit])
+		CFLAGS="$CFLAGS -arch i386 -arch x86_64"
+		LDFLAGS="$LDFLAGS -arch i386 -arch x86_64 -mmacosx-version-min=10.4"
+	else
+		AC_MSG_RESULT([No - Only building 32-bit library])
+	fi
+	;;
   mingw|mingw32)
 	AC_MSG_CHECKING(for winsock)
 	save_LIBS="$LIBS"
@@ -414,6 +425,7 @@ case "$host_os" in
 	done
 	AC_MSG_RESULT($have_winsock)
 	LIBS="$LIBS -liphlpapi"
+	;;
 esac
 
 ###############################################################################
