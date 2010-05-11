@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D58C321C-5030-4C0B-B048-984453F4A6DF}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>common</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;COMMON_EXPORTS;DEBUG;HAVE_IPv6;NEED_INET_NTOP;NEED_INET_PTON;HAVE_SOCKADDR_STORAGE;HAVE_VSNPRINTF;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WIN32_WINNT=_WIN32_WINNT_WINXP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>
+      </PrecompiledHeaderOutputFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;COMMON_EXPORTS;_LIB;HAVE_IPv6;NEED_INET_NTOP;NEED_INET_PTON;HAVE_SOCKADDR_STORAGE;HAVE_VSNPRINTF;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WIN32_WINNT=_WIN32_WINNT_WINXP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>
+      </PrecompiledHeaderOutputFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="addrinfo.h" />
+    <ClInclude Include="addrsize.h" />
+    <ClInclude Include="asarray.h" />
+    <ClInclude Include="base64.h" />
+    <ClInclude Include="bittypes.h" />
+    <ClInclude Include="btree.h" />
+    <ClInclude Include="cdecl_ext.h" />
+    <ClInclude Include="config_unix.h" />
+    <ClInclude Include="config_win32.h" />
+    <ClInclude Include="crypt_random.h" />
+    <ClInclude Include="debug.h" />
+    <ClInclude Include="drand48.h" />
+    <ClInclude Include="gettimeofday.h" />
+    <ClInclude Include="hmac.h" />
+    <ClInclude Include="inet_ntop.h" />
+    <ClInclude Include="inet_pton.h" />
+    <ClInclude Include="mbus.h" />
+    <ClInclude Include="mbus_addr.h" />
+    <ClInclude Include="mbus_config.h" />
+    <ClInclude Include="mbus_parser.h" />
+    <ClInclude Include="md5.h" />
+    <ClInclude Include="memory.h" />
+    <ClInclude Include="net_udp.h" />
+    <ClInclude Include="ntp.h" />
+    <ClInclude Include="qfDES.h" />
+    <ClInclude Include="rijndael-alg-fst.h" />
+    <ClInclude Include="rijndael-api-fst.h" />
+    <ClInclude Include="rtp.h" />
+    <ClInclude Include="sap.h" />
+    <ClInclude Include="sdp.h" />
+    <ClInclude Include="sockstorage.h" />
+    <ClInclude Include="util.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="asarray.c" />
+    <ClCompile Include="base64.c" />
+    <ClCompile Include="btree.c" />
+    <ClCompile Include="crypt_random.c" />
+    <ClCompile Include="debug.c" />
+    <ClCompile Include="drand48.c" />
+    <ClCompile Include="getaddrinfo.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="gettimeofday.c" />
+    <ClCompile Include="hmac.c" />
+    <ClCompile Include="inet_ntop.c" />
+    <ClCompile Include="inet_pton.c" />
+    <ClCompile Include="mbus.c" />
+    <ClCompile Include="mbus_addr.c" />
+    <ClCompile Include="mbus_config.c" />
+    <ClCompile Include="mbus_parser.c" />
+    <ClCompile Include="md5.c" />
+    <ClCompile Include="memory.c" />
+    <ClCompile Include="net_udp.c" />
+    <ClCompile Include="ntp.c" />
+    <ClCompile Include="qfDES.c" />
+    <ClCompile Include="rijndael-alg-fst.c" />
+    <ClCompile Include="rijndael-api-fst.c" />
+    <ClCompile Include="rtp.c" />
+    <ClCompile Include="sap.c" />
+    <ClCompile Include="sdp.c" />
+    <ClCompile Include="util.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README" />
+    <None Include="..\VERSION" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
