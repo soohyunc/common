@@ -11295,7 +11295,7 @@ fi
 ###############################################################################
 # The following causes autoconf to complain.
 case "$host_os" in
-    mingw|mingw32)
+    *mingw*|*mingw32*)
 	    ;;
 	*)
 	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for /dev/urandom" >&5
@@ -12023,7 +12023,7 @@ esac
 
 ###############################################################################
 # Done, create the output files....
-ac_config_headers="$ac_config_headers uclconf.h:src/config.h.in"
+ac_config_headers="$ac_config_headers src/uclconf.h:src/config.h.in"
 
 ac_config_files="$ac_config_files Makefile doc/Makefile examples/Makefile examples/rtp/Makefile examples/sdp/Makefile examples/sap/Makefile src/Makefile tests/Makefile"
 
@@ -12975,7 +12975,7 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
-    "uclconf.h") CONFIG_HEADERS="$CONFIG_HEADERS uclconf.h:src/config.h.in" ;;
+    "src/uclconf.h") CONFIG_HEADERS="$CONFIG_HEADERS src/uclconf.h:src/config.h.in" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
     "examples/Makefile") CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
