@@ -980,6 +980,7 @@ char *find_win32_interface(const char *addr, int ttl)
     char szDestIp[128];
     char szMaskIp[128];
     char szGatewayIp[128];
+	char *address;
 
     struct in_addr IpAddr;
 
@@ -1012,11 +1013,20 @@ char *find_win32_interface(const char *addr, int ttl)
             /* Convert IPv4 addresses to strings */
 
             IpAddr.S_un.S_addr = (u_long) pIpForwardTable->table[i].dwForwardDest;
-            strncpy(szDestIp, sizeof(szDestIp), inet_ntoa(IpAddr) );
+			address = inet_ntoa(IpAddr);
+			if (address != NULL) {
+                strncpy(szDestIp, address, sizeof(szDestIp));
+			}
             IpAddr.S_un.S_addr =  (u_long) pIpForwardTable->table[i].dwForwardMask;
-            strncpy(szMaskIp, sizeof(szMaskIp), inet_ntoa(IpAddr) );
+			address = inet_ntoa(IpAddr);
+			if (address != NULL) {
+			    strncpy(szMaskIp, address, sizeof(szMaskIp));
+		    }
             IpAddr.S_un.S_addr = (u_long) pIpForwardTable->table[i].dwForwardNextHop;
-            strncpy(szGatewayIp, sizeof(szGatewayIp), inet_ntoa(IpAddr) );
+			address = inet_ntoa(IpAddr);
+			if (address != NULL) {
+				strncpy(szGatewayIp, address, sizeof(szGatewayIp));
+			}
 
             debug_msg("\n\tRoute[%d] Dest IP: %s\n", i, szDestIp);
             debug_msg("\tRoute[%d] Subnet Mask: %s\n", i, szMaskIp);

@@ -3,7 +3,6 @@
 AC_PREREQ(2.5)
 
 AC_INIT(src/base64.c)
-AM_INIT_AUTOMAKE
 
 LT_INIT
 
@@ -90,7 +89,13 @@ fi
 
 ###############################################################################
 # The following causes autoconf to complain.
-AC_CHECK_FILE(/dev/urandom,AC_DEFINE(HAVE_DEV_URANDOM))
+case "$host_os" in 
+    *mingw*|*mingw32*)
+	    ;;
+	*)
+	    AC_CHECK_FILE(/dev/urandom,AC_DEFINE(HAVE_DEV_URANDOM))
+		;;
+esac
 
 # If more files than mbus.c use vsnprintf, split it out into
 # vsnprintf.c and add it to AC_REPLACE_FUNCS
@@ -430,5 +435,5 @@ esac
 
 ###############################################################################
 # Done, create the output files....
-AC_CONFIG_HEADER(uclconf.h:src/config.h.in)
+AC_CONFIG_HEADER(src/uclconf.h:src/config.h.in)
 AC_OUTPUT(Makefile doc/Makefile examples/Makefile examples/rtp/Makefile examples/sdp/Makefile examples/sap/Makefile src/Makefile tests/Makefile)
