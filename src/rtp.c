@@ -80,6 +80,37 @@ static int des_encrypt(struct rtp *session, unsigned char *data,
 #define MAX_MISORDER   100
 #define MIN_SEQUENTIAL 2
 
+#define MAX_UMTP_SIZE 12
+
+#define UMTP_S_12 0
+#define UMTP_S_16 1
+
+#define UMTP_VERSION 0
+
+#define UMTP_CMD_DATA            1
+#define UMTP_CMD_JOIN_GROUP      2
+#define UMTP_CMD_LEAVE_GROUP     3
+#define UMTP_CMD_TEAR_DOWN       4
+#define UMTP_CMD_PROBE           5
+#define UMTP_CMD_PROBE_ACK       6
+#define UMTP_CMD_PROBE_NACK      7
+#define UMTP_CMD_JOIN_RTP_GROUP  8
+#define UMTP_CMD_LEAVE_RTP_GROUP 9
+
+/*
+ * Definition for UMTP trailer
+ */
+typedef struct {
+	uint16_t source_cookie;
+	uint16_t dest_cookie;
+	uint32_t address;
+	uint16_t port;
+
+	uint8_t ttl;
+	uint8_t trailer;
+} umtp_trailer_t;
+
+
 /*
  * Definitions for the RTP/RTCP packets on the wire...
  */
@@ -218,6 +249,7 @@ typedef int (*rtp_decrypt_func)(struct rtp *, unsigned char *data,
 struct rtp {
 	socket_udp	*rtp_socket;
 	socket_udp	*rtcp_socket;
+	socket_udp	*umtp_socket;
 	char		*addr;
 	uint16_t	 rx_port;
 	uint16_t	 tx_port;
@@ -267,6 +299,10 @@ struct rtp {
  		} des;
  	} crypto_state;
 	rtp_callback	 callback;
+
+	umtp_trailer_t	 umtp_rtp_dest;
+	umtp_trailer_t	 umtp_rtcp_dest;
+
 	uint32_t	 magic;				/* For debugging...  */
 };
 
@@ -646,6 +682,9 @@ static void delete_source(struct rtp *session, uint32_t ssrc)
 	rtp_event	 event;
 	struct timeval	 event_ts;
 
+	if (s == NULL) {
+		return;
+	}
 	assert(s != NULL);	/* Deleting a source which doesn't exist is an error... */
 
 	gettimeofday(&event_ts, NULL);
@@ -1118,6 +1157,65 @@ struct rtp *rtp_init_if(const char *addr, char *iface,
 	return session;
 }
 
+int rtp_set_umtp_dest(struct rtp *session,
+		       const char *addr,
+		       uint16_t port,
+		       uint16_t src_cookie,
+		       uint16_t dst_cookie)
+{
+	if (session->umtp_socket != NULL) {
+	  udp_exit(session->umtp_socket);
+	  session->umtp_socket = NULL;
+	}
+
+	if (addr == NULL) {
+	  return FALSE;
+	}
+
+	if (!udp_addr_valid(addr)) {
+	  debug_msg("rtp_set_umtp_dest: invalid address!");
+	  return FALSE;
+	}
+
+	session->umtp_socket = udp_init(addr, port, port, 127);
+	if (session->umtp_socket == NULL) {
+	  debug_msg("rtp_set_umtp_dest: failed to create sockets!");
+	  return FALSE;
+	}
+
+	/*
+	 * Initialise trailer for rtp
+	 */
+	memset(&(session->umtp_rtp_dest), 0, sizeof(umtp_trailer_t));
+
+	session->umtp_rtp_dest.source_cookie = htons(src_cookie);
+	session->umtp_rtp_dest.dest_cookie = htons(dst_cookie);
+	session->umtp_rtp_dest.address = udp_socket_addr4(session->rtp_socket);
+	session->umtp_rtp_dest.port = htons(session->tx_port);
+	session->umtp_rtp_dest.ttl = session->ttl;
+	session->umtp_rtp_dest.trailer = 
+	  (UMTP_S_12 & 0x01) << 7 |
+	  (UMTP_VERSION & 0x05) << 4 |
+	  (UMTP_CMD_DATA & 0x0f);
+
+	/*
+	 * Initialise trailer for rtcp
+	 */
+	memset(&(session->umtp_rtcp_dest), 0, sizeof(umtp_trailer_t));
+
+	session->umtp_rtcp_dest.source_cookie = htons(src_cookie);
+	session->umtp_rtcp_dest.dest_cookie = htons(dst_cookie);
+	session->umtp_rtcp_dest.address = udp_socket_addr4(session->rtcp_socket);
+	session->umtp_rtcp_dest.port = htons(session->tx_port + 1);
+	session->umtp_rtcp_dest.ttl = session->ttl;
+	session->umtp_rtcp_dest.trailer = 
+	  (UMTP_S_12 & 0x01) << 7 |
+	  (UMTP_VERSION & 0x05) << 4 |
+	  (UMTP_CMD_DATA & 0x0f);
+
+	return TRUE;
+}
+
 /**
  * rtp_set_my_ssrc:
  * @session: the RTP session 
@@ -1171,20 +1269,20 @@ int rtp_set_option(struct rtp *session, rtp_option optname, int optval)
 		case RTP_OPT_WAIT_FOR_RTCP:
 			session->opt->wait_for_rtcp = optval;
 			break;
-	        case RTP_OPT_PROMISC:
+		case RTP_OPT_PROMISC:
 			session->opt->promiscuous_mode = optval;
 			break;
-	        case RTP_OPT_FILTER_MY_PACKETS:
+		case RTP_OPT_FILTER_MY_PACKETS:
 			session->opt->filter_my_packets = optval;
 			break;
 		case RTP_OPT_REUSE_PACKET_BUFS:
 			session->opt->reuse_bufs = optval;
 			break;
-        	default:
+		default:
 			debug_msg("Ignoring unknown option (%d) in call to rtp_set_option().\n", optname);
-                        return FALSE;
+			return FALSE;
 	}
-        return TRUE;
+	return TRUE;
 }
 
 int rtp_get_ssrc_count(struct rtp *session);
@@ -1209,22 +1307,22 @@ int rtp_get_option(struct rtp *session, rtp_option optname, int *optval)
 	switch (optname) {
 		case RTP_OPT_WAIT_FOR_RTCP:
 			*optval = session->opt->wait_for_rtcp;
-                        break;
-        	case RTP_OPT_PROMISC:
+			break;
+		case RTP_OPT_PROMISC:
 			*optval = session->opt->promiscuous_mode;
-                        break;
-	        case RTP_OPT_FILTER_MY_PACKETS:
+			break;
+		case RTP_OPT_FILTER_MY_PACKETS:
 			*optval = session->opt->filter_my_packets;
 			break;
 		case RTP_OPT_REUSE_PACKET_BUFS:
 			*optval = session->opt->reuse_bufs;
 			break;
-        	default:
-                        *optval = 0;
+		default:
+			*optval = 0;
 			debug_msg("Ignoring unknown option (%d) in call to rtp_get_option().\n", optname);
-                        return FALSE;
+			return FALSE;
 	}
-        return TRUE;
+	return TRUE;
 }
 
 /**
@@ -1327,7 +1425,7 @@ static int validate_rtp2(rtp_packet *packet, int len)
 			debug_msg("rtp_header_validation: padding zero\n");
 			return FALSE;
 		}
-        }
+	}
 	return TRUE;
 }
 
@@ -1353,7 +1451,7 @@ static void
 rtp_recv_data(struct rtp *session, uint32_t curr_rtp_ts)
 {
 	/* This routine preprocesses an incoming RTP packet, deciding whether to process it. */
-        rtp_packet      *packet   = NULL;
+	rtp_packet      *packet   = NULL;
 	uint8_t		*buffer   = NULL;
 	uint8_t		*buffer12 = NULL;
 	int			 buflen;
@@ -1380,7 +1478,7 @@ rtp_recv_data(struct rtp *session, uint32_t curr_rtp_ts)
 			int	i;
 			packet->meta.csrc = (uint32_t *)(buffer12);
 			for (i = 0; i < packet->fields.cc; i++) {
-                                packet->meta.csrc[i] = ntohl(packet->meta.csrc[i]);
+				packet->meta.csrc[i] = ntohl(packet->meta.csrc[i]);
 			}
 		} else {
 			packet->meta.csrc = NULL;
@@ -1394,7 +1492,7 @@ rtp_recv_data(struct rtp *session, uint32_t curr_rtp_ts)
 			packet->meta.extn_len  = 0;
 			packet->meta.extn_type = 0;
 		}
-                packet->meta.data     = (char *) buffer12 + (packet->fields.cc * 4);
+		packet->meta.data     = (char *) buffer12 + (packet->fields.cc * 4);
 		packet->meta.data_len = buflen -  (packet->fields.cc * 4) - 12;
 		if (packet->meta.extn != NULL) {
 			packet->meta.data += ((packet->meta.extn_len + 1) * 4);
@@ -1821,7 +1919,7 @@ static void rtp_process_ctrl(struct rtp *session, uint8_t *buffer, int buflen)
 						}
 						process_rtcp_bye(session, packet, &event_ts);
 						break;
-				        case RTCP_APP:
+					case RTCP_APP:
 						if (first && !filter_event(session, ntohl(packet->r.app.ssrc))) {
 							event.ssrc  = ntohl(packet->r.app.ssrc);
 							event.type  = RX_RTCP_START;
@@ -1830,7 +1928,7 @@ static void rtp_process_ctrl(struct rtp *session, uint8_t *buffer, int buflen)
 							packet_ssrc = event.ssrc;
 							session->callback(session, &event);
 						}
-					        process_rtcp_app(session, packet, &event_ts);
+						process_rtcp_app(session, packet, &event_ts);
 						break;
 					default: 
 						debug_msg("RTCP packet with unknown type (%d) ignored.\n", packet->common.pt);
@@ -1894,10 +1992,10 @@ int rtp_recv(struct rtp *session, struct timeval *timeout, uint32_t curr_rtp_ts)
 			rtp_process_ctrl(session, (unsigned char *)buffer, buflen);
 		}
 		check_database(session);
-                return TRUE;
+		return TRUE;
 	}
 	check_database(session);
-        return FALSE;
+	return FALSE;
 }
 
 
@@ -1958,7 +2056,7 @@ int rtp_del_csrc(struct rtp *session, uint32_t csrc)
 	session->csrc_count--;
 	if (session->last_advertised_csrc >= session->csrc_count) {
                 session->last_advertised_csrc = 0;
-        }
+	}
 	return TRUE;
 }
 
@@ -2037,7 +2135,7 @@ int rtp_set_sdes(struct rtp *session, uint32_t ssrc, rtcp_sdes_type type, const 
 			  if (!isalnum(v[i])) v[i]='?';
 			}
 			debug_msg("Unknown SDES item (type=%d, value=%s)\n", type, v);
-                        xfree(v);
+			xfree(v);
 			check_database(session);
 			return FALSE;
 	}
@@ -2248,13 +2346,15 @@ int rtp_send_data(struct rtp *session, uint32_t rtp_ts, char pt, int m,
 	}
 
 	/* Allocate memory for the packet... */
-        buffer     = (char *) xmalloc(buffer_len + offsetof(rtp_packet, fields));
+	buffer     = (char *) xmalloc(buffer_len + offsetof(rtp_packet, fields) + sizeof(umtp_trailer_t));
 	packet     = (rtp_packet *) buffer;
+
+	memset(buffer, 0, buffer_len + offsetof(rtp_packet, fields) + sizeof(umtp_trailer_t));
 
 	/* These are internal pointers into the buffer... */
 	packet->meta.csrc = (uint32_t *) (buffer + offsetof(rtp_packet, fields) + 12);
 	packet->meta.extn = (uint8_t  *) (buffer + offsetof(rtp_packet, fields) + 12 + (4 * cc));
-        packet->meta.data = (char  *) (buffer + offsetof(rtp_packet, fields) + 12 + (4 * cc));
+	packet->meta.data = (char  *) (buffer + offsetof(rtp_packet, fields) + 12 + (4 * cc));
 	if (extn != NULL) {
 		packet->meta.data += (extn_len + 1) * 4;
 	}
@@ -2274,7 +2374,7 @@ int rtp_send_data(struct rtp *session, uint32_t rtp_ts, char pt, int m,
 	}
 	/* ...a header extension? */
 	if (extn != NULL) {
-                /* We don't use the packet->fields.extn_type field here, that's for receive only... */
+		/* We don't use the packet->fields.extn_type field here, that's for receive only... */
 		uint16_t *base = (uint16_t *) packet->meta.extn;
 		base[0] = htons(extn_type);
 		base[1] = htons(extn_len);
@@ -2294,11 +2394,21 @@ int rtp_send_data(struct rtp *session, uint32_t rtp_ts, char pt, int m,
 	if (session->encryption_enabled)
 	{
 		assert((buffer_len % session->encryption_pad_length) == 0);
-                (session->encrypt_func)(session, (unsigned char *) buffer + offsetof(rtp_packet, fields),
+		(session->encrypt_func)(session, (unsigned char *) buffer + offsetof(rtp_packet, fields),
 					buffer_len, initVec); 
 	}
 
-	  rc = udp_send(session->rtp_socket, buffer + offsetof(rtp_packet, fields), buffer_len);
+	if (session->umtp_socket != NULL) {
+		/* Add umtp trailer and send to umtp socket if umtp is enabled */
+		memcpy(buffer + offsetof(rtp_packet, fields) + buffer_len, 
+		       &(session->umtp_rtp_dest),
+		       sizeof(umtp_trailer_t));
+
+		rc = udp_send(session->umtp_socket, buffer + offsetof(rtp_packet, fields), buffer_len + sizeof(umtp_trailer_t));
+	} else {
+		/* Normal send to mcast address */
+		rc = udp_send(session->rtp_socket, buffer + offsetof(rtp_packet, fields), buffer_len);
+	}
 	xfree(buffer);
 
 	/* Update the RTCP statistics... */
@@ -2656,12 +2766,14 @@ static void send_rtcp(struct rtp *session, uint32_t rtp_ts,
 	/* Construct and send an RTCP packet. The order in which packets are packed into a */
 	/* compound packet is defined by section 6.1 of draft-ietf-avt-rtp-new-03.txt and  */
 	/* we follow the recommended order.                                                */
-	uint8_t	   buffer[RTP_MAX_PACKET_LEN + MAX_ENCRYPTION_PAD];	/* The +8 is to allow for padding when encrypting */
+	uint8_t	   buffer[RTP_MAX_PACKET_LEN + MAX_ENCRYPTION_PAD + MAX_UMTP_SIZE];	/* The +8 is to allow for padding when encrypting */
 	uint8_t	  *ptr = buffer;
 	uint8_t   *old_ptr;
 	uint8_t   *lpt;		/* the last packet in the compound */
 	rtcp_app  *app;
 	uint8_t    initVec[8] = {0,0,0,0,0,0,0,0};
+
+	memset(buffer, 0, RTP_MAX_PACKET_LEN + MAX_ENCRYPTION_PAD + MAX_UMTP_SIZE);
 
 	check_database(session);
 	/* If encryption is enabled, add a 32 bit random prefix to the packet */
@@ -2731,14 +2843,18 @@ static void send_rtcp(struct rtp *session, uint32_t rtp_ts,
 			((rtcp_t *) lpt)->common.p = TRUE;
 			((rtcp_t *) lpt)->common.length = htons((int16_t)(((ptr - lpt) / 4) - 1));
 		}
- 		(session->encrypt_func)(session, buffer, ptr - buffer, initVec); 
+		(session->encrypt_func)(session, buffer, ptr - buffer, initVec); 
 	}
-	udp_send(session->rtcp_socket, (char *) buffer, ptr - buffer);
-
-        /* Loop the data back to ourselves so local participant can */
-        /* query own stats when using unicast or multicast with no  */
-        /* loopback.                                                */
-        rtp_process_ctrl(session, buffer, ptr - buffer);
+	if (session->umtp_socket != NULL) {
+		memcpy(ptr, &(session->umtp_rtcp_dest), sizeof(umtp_trailer_t));
+		udp_send(session->umtp_socket, (char *) buffer, (ptr - buffer) + sizeof(umtp_trailer_t));
+	} else {
+		udp_send(session->rtcp_socket, (char *) buffer, ptr - buffer);
+	}
+	/* Loop the data back to ourselves so local participant can */
+	/* query own stats when using unicast or multicast with no  */
+	/* loopback.                                                */
+	rtp_process_ctrl(session, buffer, ptr - buffer);
 	check_database(session);
 }
 
@@ -2883,6 +2999,7 @@ static void rtp_send_bye_now(struct rtp *session)
 	rtcp_common	*common;
 	uint8_t    	 initVec[8] = {0,0,0,0,0,0,0,0};
 
+	memset(buffer, 0, RTP_MAX_PACKET_LEN + MAX_ENCRYPTION_PAD);
 	check_database(session);
 	/* If encryption is enabled, add a 32 bit random prefix to the packet */
 	if (session->encryption_enabled) {
@@ -3042,13 +3159,19 @@ void rtp_done(struct rtp *session)
 	/*
 	 * Introduce a memory leak until we add algorithm-specific
 	 * cleanup functions.
-        if (session->encryption_key != NULL) {
-                xfree(session->encryption_key);
-        }
+	if (session->encryption_key != NULL) {
+		xfree(session->encryption_key);
+	}
 	*/
 
 	udp_exit(session->rtp_socket);
 	udp_exit(session->rtcp_socket);
+
+	if (session->umtp_socket != NULL) {
+		udp_exit(session->umtp_socket);
+		session->umtp_socket = NULL;
+	}
+
 	xfree(session->addr);
 	xfree(session->opt);
 	xfree(session);
