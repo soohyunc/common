@@ -288,7 +288,7 @@ int udp_socket_ttl(socket_udp *s)
 
 static socket_udp *udp_init4(const char *addr, const char *iface, uint16_t rx_port, uint16_t tx_port, int ttl)
 {
-	int                 	 reuse = 1, udpbufsize=131072;
+	int                 	 reuse = 1, udpbufsize=1048576;
 	struct sockaddr_in  	 s_in;
 
 #ifdef WIN32
